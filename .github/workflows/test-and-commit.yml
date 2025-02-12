@@ -1,13 +1,13 @@
-name: Run Tests and Commit Changes on PR Opened and Merged
+name: Run Tests on Pull Request
 
 on:
   pull_request:
-    types: [opened]  # Trigger when PR is opened
+    types: [opened, synchronize, reopened]  # Trigger on PR open, update, or re-open
     branches:
-      - 'main'
+      - 'main'  # Run tests on PR targeting the main branch
 
 jobs:
-  test_and_commit:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,21 +27,3 @@ jobs:
       - name: Run Go tests
         run: |
           go test ./... -v  # Run tests in all directories
-
-      - name: Commit and Push changes if tests pass and PR was merged
-        if: success() && github.event.pull_request.merged == true  # Only commit if tests passed and PR was merged
-        run: |
-          # Check if there are any changes (to avoid committing when there are none)
-          git diff --exit-code || (
-            git config --global user.name "github-actions"
-            git config --global user.email "github-actions@github.com"
-
-            # Add changes to git
-            git add .
-
-            # Commit changes with a default message
-            git commit -m "Automated commit after successful test run"
-
-            # Push changes to the current branch (main)
-            git push origin HEAD
-          )
