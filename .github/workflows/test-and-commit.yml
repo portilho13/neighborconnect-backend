@@ -1,0 +1,46 @@
+name: Run Tests and Commit Changes
+
+on:
+  push:
+    branches:
+      - '**'  # Trigger for every branch
+
+jobs:
+  test_and_commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.24'
+
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          go mod vendor
+
+      - name: Run Go tests
+        run: |
+          go test ./... -v  # Run tests in all directories
+
+      - name: Commit and Push changes if tests pass
+        if: success()  # Only commit if tests passed
+        run: |
+          # Check if there are any changes (to avoid committing when there are none)
+          git diff --exit-code || (
+            git config --global user.name "github-actions"
+            git config --global user.email "github-actions@github.com"
+
+            # Add changes to git
+            git add .
+
+            # Commit changes without a custom message (Git will use the default message)
+            git commit
+
+            # Push changes to the current branch
+            git push origin HEAD
+          )
