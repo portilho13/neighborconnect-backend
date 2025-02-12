@@ -1,9 +1,10 @@
-name: Run Tests and Commit Changes
+name: Run Tests and Commit Changes on PR Opened and Merged
 
 on:
-  push:
+  pull_request:
+    types: [opened]  # Trigger when PR is opened
     branches:
-      - '**'  # Trigger for every branch
+      - 'main'
 
 jobs:
   test_and_commit:
@@ -27,8 +28,8 @@ jobs:
         run: |
           go test ./... -v  # Run tests in all directories
 
-      - name: Commit and Push changes if tests pass
-        if: success()  # Only commit if tests passed
+      - name: Commit and Push changes if tests pass and PR was merged
+        if: success() && github.event.pull_request.merged == true  # Only commit if tests passed and PR was merged
         run: |
           # Check if there are any changes (to avoid committing when there are none)
           git diff --exit-code || (
@@ -38,9 +39,9 @@ jobs:
             # Add changes to git
             git add .
 
-            # Commit changes without a custom message (Git will use the default message)
-            git commit
+            # Commit changes with a default message
+            git commit -m "Automated commit after successful test run"
 
-            # Push changes to the current branch
+            # Push changes to the current branch (main)
             git push origin HEAD
           )
