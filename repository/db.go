@@ -10,7 +10,8 @@ import (
 var DBPool *pgxpool.Pool
 
 func InitDB(databaseURL string) {
-	_, err := pgxpool.New(context.Background(), databaseURL)
+	var err error
+	DBPool, err = pgxpool.New(context.Background(), databaseURL)
 	if err != nil {
 		log.Fatalf("Unable to create connection pool: %v\n", err)
 	}
