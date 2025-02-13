@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/portilho13/neighborconnect-backend/middleware"
+	"github.com/portilho13/neighborconnect-backend/repository"
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
 
@@ -21,6 +24,21 @@ func InitializeRoutes() http.Handler {
 	return nextMux
 }
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+		// Get database URL
+		databaseURL := os.Getenv("DATABASE_URL")
+		if databaseURL == "" {
+			log.Fatal("DATABASE_URL is not set")
+		}
+	
+		// Initialize database
+		repository.InitDB(databaseURL)
+		defer repository.CloseDB()
+
 	mux := InitializeRoutes();
 	fmt.Println("Start listening on:", IP)
 	if err := http.ListenAndServe(IP, mux); err != nil {

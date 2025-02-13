@@ -40,7 +40,7 @@ func TestTestAPI(t *testing.T) {
 		t.Fatal("Failed to decode JSON response:", err)
 	}
 
-	if response["message"] != "API Workig!" {
+	if response["message"] != "API Worknig!" {
 		t.Errorf("TestAPI returned unexpected message: got %v want API Working!", response["message"])
 	}
 }
