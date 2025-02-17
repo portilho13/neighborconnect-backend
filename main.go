@@ -23,6 +23,7 @@ func InitializeRoutes() http.Handler {
 
 	return nextMux
 }
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -36,8 +37,12 @@ func main() {
 		}
 	
 		// Initialize database
-		repository.InitDB(databaseURL)
-		defer repository.CloseDB()
+		dbPool, err := repository.InitDB(databaseURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer repository.CloseDB(dbPool)
+
 
 	mux := InitializeRoutes();
 	fmt.Println("Start listening on:", IP)
