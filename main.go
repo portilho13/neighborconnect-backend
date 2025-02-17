@@ -44,23 +44,23 @@ func main() {
 		}
 		defer repository.CloseDB(dbPool)
 
-		user := models.User{
+		manager := models.Manager{
 			Name:     "John Doe",
 			Email:    "john@example.com",
 			Password: "securepassword",
 			Phone:    "+123456789",
-			Apartment_id: 1,
 		}
 		
-		err = repository.CreateUser(user, dbPool)
+		err = repository.CreateManager(manager, dbPool)
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println("Query Executed")
 
-	mux := InitializeRoutes();
-	fmt.Println("Start listening on:", IP)
-	if err := http.ListenAndServe(IP, mux); err != nil {
-		log.Fatal(err)
-	}
+	// mux := InitializeRoutes();
+	// fmt.Println("Start listening on:", IP)
+	// if err := http.ListenAndServe(IP, mux); err != nil {
+	// 	log.Fatal(err)
+	// }
 	
 }
