@@ -7,7 +7,7 @@ import (
 	"github.com/portilho13/neighborconnect-backend/repository/models"
 )
 
-func CreateApartment(dbPool *pgxpool.Pool, apartment models.Apartment) error {
+func CreateApartment(apartment models.Apartment, dbPool *pgxpool.Pool) error {
 	query := `INSERT INTO users.appartment (n_bedrooms, floor, rent, manager_id) VALUES ($1, $2, $3, $4)`
 
 	_, err := dbPool.Exec(context.Background(), query, 

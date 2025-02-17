@@ -9,7 +9,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/portilho13/neighborconnect-backend/middleware"
 	"github.com/portilho13/neighborconnect-backend/repository"
-	"github.com/portilho13/neighborconnect-backend/repository/models"
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
 
@@ -44,23 +43,11 @@ func main() {
 		}
 		defer repository.CloseDB(dbPool)
 
-		manager := models.Manager{
-			Name:     "John Doe",
-			Email:    "john@example.com",
-			Password: "securepassword",
-			Phone:    "+123456789",
-		}
-		
-		err = repository.CreateManager(manager, dbPool)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("Query Executed")
 
-	// mux := InitializeRoutes();
-	// fmt.Println("Start listening on:", IP)
-	// if err := http.ListenAndServe(IP, mux); err != nil {
-	// 	log.Fatal(err)
-	// }
+	mux := InitializeRoutes();
+	fmt.Println("Start listening on:", IP)
+	if err := http.ListenAndServe(IP, mux); err != nil {
+		log.Fatal(err)
+	}
 	
 }
