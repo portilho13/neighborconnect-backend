@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/portilho13/neighborconnect-backend/middleware"
 	"github.com/portilho13/neighborconnect-backend/repository"
+	"github.com/portilho13/neighborconnect-backend/repository/models"
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
 
@@ -23,6 +24,7 @@ func InitializeRoutes() http.Handler {
 
 	return nextMux
 }
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -36,8 +38,24 @@ func main() {
 		}
 	
 		// Initialize database
-		repository.InitDB(databaseURL)
-		defer repository.CloseDB()
+		dbPool, err := repository.InitDB(databaseURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer repository.CloseDB(dbPool)
+
+		user := models.User{
+			Name:     "John Doe",
+			Email:    "john@example.com",
+			Password: "securepassword",
+			Phone:    "+123456789",
+			Apartment_id: 1,
+		}
+		
+		err = repository.CreateUser(user, dbPool)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	mux := InitializeRoutes();
 	fmt.Println("Start listening on:", IP)
