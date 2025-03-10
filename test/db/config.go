@@ -15,3 +15,8 @@ func GetTestDBConnection() (*pgxpool.Pool, error) {
 	}
 	return dbPool, err
 }
+
+// CleanDatabase removes all records from a table
+func CleanDatabase(dbPool *pgxpool.Pool, tableName string) {
+	_, _ = dbPool.Exec(context.Background(), "TRUNCATE "+tableName+" RESTART IDENTITY CASCADE")
+}

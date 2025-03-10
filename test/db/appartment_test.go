@@ -4,16 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	repository "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/users"
 	"github.com/stretchr/testify/assert"
 )
 
-// Cleanup function to delete all data after each test
-func cleanDatabase(dbPool *pgxpool.Pool) {
-	_, _ = dbPool.Exec(context.Background(), "TRUNCATE users.apartment, users.manager RESTART IDENTITY CASCADE")
-}
 
 func TestCreateApartmentIntegration(t *testing.T) {
 	// Connect to the test database
@@ -24,7 +19,7 @@ func TestCreateApartmentIntegration(t *testing.T) {
 	defer dbPool.Close()
 
 	// Ensure the database is clean before starting
-	cleanDatabase(dbPool)
+	CleanDatabase(dbPool, "users.apartment, users.manager")
 
 	// Step 1: Insert a manager first
 	var managerID int
@@ -50,5 +45,5 @@ func TestCreateApartmentIntegration(t *testing.T) {
 	err = dbPool.QueryRow(context.Background(), "SELECT COUNT(*) FROM users.apartment").Scan(&count)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, count, "Expected one apartment in the database")
-	cleanDatabase(dbPool)
+	CleanDatabase(dbPool, "users.apartment, users.manager")
 }
