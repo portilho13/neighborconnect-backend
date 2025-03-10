@@ -7,5 +7,5 @@ type Bid struct {
 	Id int
 	Bid_Ammount int
 	Bid_Time time.Time
-	Users_id int
+	Users_Id int
 }
