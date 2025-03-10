@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/portilho13/neighborconnect-backend/repository/models"
+	models "github.com/portilho13/neighborconnect-backend/repository/models/users"
 )
 
 func CreateManager(manager models.Manager, dbPool *pgxpool.Pool) error {
