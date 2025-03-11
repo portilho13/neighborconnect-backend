@@ -10,6 +10,5 @@ type Listning struct {
 	Created_At time.Time
 	Status string
 	Seller_Id int
-	Buyer_Id int
 	Item_Id int
 }

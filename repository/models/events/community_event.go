@@ -10,4 +10,5 @@ type Community_Event struct {
 	Capacity int
 	Date_Time time.Time
 	Manager_Id int
+	Event_Image *string
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func CreateAccount(account models.Account, dbPool *pgxpool.Pool) error {
-	query := `INSERT INTO users.account (account_number, balance, currency, users_id) VALUES ($1, $2, $3)`
+	query := `INSERT INTO users.account (account_number, balance, currency, users_id) VALUES ($1, $2, $3, $4)`
 	_, err := dbPool.Exec(context.Background(), query,
 	account.Account_number,
 	account.Balance,

@@ -6,5 +6,5 @@ type Withdraw struct {
 	Id int
 	Ammount int
 	Created_at time.Time
-	User_Id int
+	Account_id int
 }
