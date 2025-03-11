@@ -22,3 +22,24 @@ func CreateUser(user models.User, dbPool *pgxpool.Pool) error {
 
 	return nil
 }
+
+func GetUserByEmail(email string, dbPool *pgxpool.Pool) (models.User, error) {
+	var user models.User
+
+	query := `SELECT id, name, email, password, phone, apartment_id FROM users.users WHERE email = $1`
+
+	err := dbPool.QueryRow(context.Background(), query, email).Scan(
+		&user.Id,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Phone,
+		&user.Apartment_id,
+	)
+
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
+}

@@ -6,5 +6,5 @@ type User struct {
 	Email    string
 	Password string
 	Phone    string
-	Apartment_id int
+	Apartment_id *int
 }

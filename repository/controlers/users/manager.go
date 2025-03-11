@@ -23,3 +23,22 @@ func CreateManager(manager models.Manager, dbPool *pgxpool.Pool) error {
 
 	return nil
 }
+
+func GetManagerByEmail(email string, dbPool *pgxpool.Pool) (models.Manager, error) {
+	var manager models.Manager
+	query := `SELECT id, name, email, password, phone FROM users.manager WHERE email = $1`
+
+	err := dbPool.QueryRow(context.Background(), query, email).Scan(
+		&manager.Id,
+		&manager.Name,
+		&manager.Email,
+		&manager.Password,
+		&manager.Phone,
+	)
+
+	if err != nil {
+		return models.Manager{}, err
+	}
+
+	return manager, nil
+}
