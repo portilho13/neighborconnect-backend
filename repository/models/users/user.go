@@ -7,4 +7,5 @@ type User struct {
 	Password string
 	Phone    string
 	Apartment_id *int
+	Profile_Picture *string
 }

@@ -24,18 +24,31 @@ func TestCreateWithdraw(t *testing.T) {
 	CleanDatabase(dbPool, "users.users")
 
 	// Step 1: Insert a test user (since `withdraw.users_id` is a foreign key)
-	var userID int
-	err = dbPool.QueryRow(context.Background(),
-		`INSERT INTO users.users (name, email, password, phone) 
-		 VALUES ('Alice Doe', 'alice@example.com', 'securepassword', '987654321') 
-		 RETURNING id`).Scan(&userID)
-	assert.NoError(t, err, "User insertion should succeed")
+	user := models.User{
+		Name: "t",
+		Email: "t",
+		Password: "t",
+		Phone: "123",
+	}
+
+	err = repository.CreateUser(user, dbPool)
+	assert.NoError(t, err, "Create user should not give an error");
+
+	accout := models.Account {
+		Account_number: "asd",
+		Balance: 1000,
+		Currency: "CHF",
+		Users_id: 1,
+	}
+
+	err = repository.CreateAccount(accout, dbPool)
+	assert.NoError(t, err, "Create account should not give an error");
 
 	// Step 2: Define test withdraw data
 	withdraw := models.Withdraw{
 		Ammount:    5000,
 		Created_at: time.Now(),
-		User_Id:    userID, // Ensure valid foreign key reference
+		Account_id:    1, // Ensure valid foreign key reference
 	}
 
 	// Step 3: Call the function to insert the withdrawal
@@ -51,4 +64,5 @@ func TestCreateWithdraw(t *testing.T) {
 	// Cleanup after the test
 	CleanDatabase(dbPool, "users.withdraw")
 	CleanDatabase(dbPool, "users.users")
+	CleanDatabase(dbPool, "users.account")
 }
