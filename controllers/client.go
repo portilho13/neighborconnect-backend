@@ -29,7 +29,8 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 	}
 
 	var apartmentID *int
-	if client.ApartmentID == 0 {
+	if client.ApartmentID == 0 { // If apartment id is 0 it means user as not an a
+	// partment id set yet so apartment id needs to be converted to pointer to not blow the db
 		apartmentID = nil
 	} else {
 		apartmentID = &client.ApartmentID
