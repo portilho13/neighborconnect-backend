@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,16 +21,33 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 		return
 	}
 
+	encodedPassword, err := utils.GenerateFromPassword(client.Password, utils.DefaultArgon2Params)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		http.Error(w, "Error creating user", http.StatusBadGateway)
+		return
+	}
+
+	var apartmentID *int
+	if client.ApartmentID == 0 {
+		apartmentID = nil
+	} else {
+		apartmentID = &client.ApartmentID
+	}
+
+	fmt.Println(client.Phone)
+
 	dbClient := models.User {
 		Name: client.Name,
 		Email: client.Email,
-		Password: client.Password,
+		Password: encodedPassword,
 		Phone: client.Phone,
-		Apartment_id: &client.ApartmentID,
+		Apartment_id: apartmentID,
 	}
 
 	err = repositoryControllers.CreateUser(dbClient, dbPool)
 	if err != nil {
+		log.Printf("-%v", err)
 		http.Error(w, "Error creating user", http.StatusBadGateway)
 		return
 	}
@@ -37,6 +56,7 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 
 	dbClient, err = repositoryControllers.GetUserByEmail(clientEmail, dbPool)
 	if err != nil {
+		log.Printf("-%v", err)
 		http.Error(w, "Error creating user", http.StatusBadGateway)
 		return
 	}
@@ -50,6 +70,7 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 
 	err = repositoryControllers.CreateAccount(userAccount, dbPool)
 	if err != nil {
+		log.Printf("-%v", err)
 		http.Error(w, "Error creating account", http.StatusBadGateway)
 		return
 	}

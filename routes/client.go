@@ -8,7 +8,7 @@ import (
 )
 
 func RegisterClientApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
-	mux.HandleFunc("/api/v1/client/register", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /api/v1/client/register", func(w http.ResponseWriter, r *http.Request) {
 		controllers.RegisterClient(w, r, dbPool)
 	})
 }
