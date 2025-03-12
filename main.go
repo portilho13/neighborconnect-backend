@@ -12,8 +12,6 @@ import (
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
 
-const IP string = "127.0.0.1:1234"
-
 func InitializeRoutes() http.Handler {
 	mux := http.NewServeMux()
 
@@ -35,6 +33,11 @@ func main() {
 		if databaseURL == "" {
 			log.Fatal("DATABASE_URL is not set")
 		}
+
+		apiIP := os.Getenv("API_IP")
+		if apiIP == "" {
+			log.Fatal("Api Ip not set")
+		}
 	
 		// Initialize database
 		dbPool, err := repository.InitDB(databaseURL)
@@ -45,8 +48,8 @@ func main() {
 
 
 	mux := InitializeRoutes();
-	fmt.Println("Start listening on:", IP)
-	if err := http.ListenAndServe(IP, mux); err != nil {
+	fmt.Println("Start listening on:", apiIP)
+	if err := http.ListenAndServe(apiIP, mux); err != nil {
 		log.Fatal(err)
 	}
 	
