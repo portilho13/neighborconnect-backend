@@ -6,16 +6,17 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/portilho13/neighborconnect-backend/middleware"
 	"github.com/portilho13/neighborconnect-backend/repository"
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
 
-func InitializeRoutes() http.Handler {
+func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	mux := http.NewServeMux()
 
-	routes.TestApiRoute(mux)
+	routes.TestApiRoute(mux, dbPool)
 
 	nextMux := middleware.Logging(middleware.CORS(mux))
 
@@ -47,7 +48,7 @@ func main() {
 		defer repository.CloseDB(dbPool)
 
 
-	mux := InitializeRoutes();
+	mux := InitializeRoutes(dbPool);
 	fmt.Println("Start listening on:", apiIP)
 	if err := http.ListenAndServe(apiIP, mux); err != nil {
 		log.Fatal(err)
