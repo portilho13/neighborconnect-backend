@@ -11,4 +11,5 @@ type Community_Event struct {
 	Date_Time time.Time
 	Manager_Id int
 	Event_Image *string
+	Duration time.Duration
 }
