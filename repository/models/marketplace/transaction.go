@@ -9,6 +9,5 @@ type Transaction struct {
 	Transaction_Type string
 	Seller_Id int
 	Buyer_Id int
-	Listning_Id int
-	Item_Id int
+	Listning_Id *int
 }
