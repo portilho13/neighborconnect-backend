@@ -103,7 +103,7 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	// Verify password
-	_, err = utils.ComparePasswordAndHash(creds.Password, dbPool)
+	_, err = utils.ComparePasswordAndHash(creds.Password, user.Password)
 	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
