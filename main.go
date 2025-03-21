@@ -13,8 +13,6 @@ import (
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
 
-const IP string = "127.0.0.1:1234"
-
 func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	mux := http.NewServeMux()
 
@@ -55,4 +53,5 @@ func main() {
 	if err := http.ListenAndServe(apiIP, mux); err != nil {
 		log.Fatal(err)
 	}
+
 }

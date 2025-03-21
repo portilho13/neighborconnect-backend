@@ -1,14 +1,23 @@
 package test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	controllers "github.com/portilho13/neighborconnect-backend/controllers"
 	repository "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/users"
 	"github.com/stretchr/testify/assert"
 )
 
+type Credentials struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
 func TestCreateUser(t *testing.T) {
 	// Connect to the test database
@@ -73,5 +82,48 @@ func TestGetUserByEmail(t *testing.T) {
 	assert.Equal(t, user.Phone, retrievedUser.Phone, "Retrieved phone should match inserted user")
 
 	// Cleanup after the test
+	CleanDatabase(dbPool, "users.users")
+}
+
+func TestLoginHandler(t *testing.T) {
+	dbPool, err := GetTestDBConnection()
+	assert.NoError(t, err)
+	defer dbPool.Close()
+
+	CleanDatabase(dbPool, "users.users")
+
+	// Ensure the database is clean before starting
+	CleanDatabase(dbPool, "users.users")
+
+	// Step 1: Insert a test user
+	user := models.User{
+		Name:     "Alice Doe",
+		Email:    "alice@example.com",
+		Password: "securepassword",
+		Phone:    "911111111",
+	}
+	err = repository.CreateUser(user, dbPool)
+	assert.NoError(t, err, "CreateUser should not return an error")
+
+	// Test valid login
+	credentials := Credentials{Email: "alice@example.com", Password: "securepassword"}
+	body, _ := json.Marshal(credentials)
+	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+
+	controllers.LoginClient(w, req, dbPool)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "Login successful")
+
+	// Test invalid login
+	wrongCredentials := Credentials{Email: "test@example.com", Password: "wrongpassword"}
+	body, _ = json.Marshal(wrongCredentials)
+	req, _ = http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+	w = httptest.NewRecorder()
+
+	controllers.LoginClient(w, req, dbPool)
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Contains(t, w.Body.String(), "Invalid credentials")
+
 	CleanDatabase(dbPool, "users.users")
 }

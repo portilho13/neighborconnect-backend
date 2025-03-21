@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"github.com/gorilla/sessions"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/controllers/models"
@@ -16,6 +17,7 @@ type Credentials struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+var store = sessions.NewCookieStore([]byte("super-secret-key"))
 func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool) {
 	var client controllers_models.UserJson
 	err := json.NewDecoder(r.Body).Decode(&client)
@@ -109,15 +111,14 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		return
 	}
 
-	// Generate JWT token
-	token, err := utils.GenerateJWT(user.Email, user.Id)
-	if err != nil {
-		log.Printf("Failed to generate token: %v", err)
-		http.Error(w, "Could not generate token", http.StatusInternalServerError)
-		return
-	}
+	
+	// Create a session
+	session, _ := store.Get(r, "session-name")
+	session.Values["user_id"] = user.Id
+	session.Values["email"] = user.Email
+	session.Save(r, w)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
 }
