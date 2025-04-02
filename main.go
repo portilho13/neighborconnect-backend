@@ -13,6 +13,7 @@ import (
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
 
+
 func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	mux := http.NewServeMux()
 
