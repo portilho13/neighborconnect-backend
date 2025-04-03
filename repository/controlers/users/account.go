@@ -22,3 +22,22 @@ func CreateAccount(account models.Account, dbPool *pgxpool.Pool) error {
 
 	return nil
 }
+
+func GetAccountByUserId(id int, dbPool *pgxpool.Pool) (models.Account, error) {
+	var account models.Account
+
+	query := `SELECT id, account_number, balance, currency, users_id FROM users.account WHERE users_id = $1`
+	err := dbPool.QueryRow(context.Background(), query, id).Scan(
+		&account.Id,
+		&account.Account_number,
+		&account.Balance,
+		&account.Currency,
+		&account.Users_id,
+	)
+
+	if err != nil {
+		return models.Account{}, err
+	}
+
+	return account, nil
+}

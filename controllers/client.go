@@ -66,7 +66,7 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 		Account_number: utils.GenerateRandomHash(),
 		Balance: 0,
 		Currency: "EUR",
-		Users_id: dbClient.Id,
+		Users_id: &dbClient.Id,
 	}
 
 	err = repositoryControllers.CreateAccount(userAccount, dbPool)

@@ -4,9 +4,9 @@ import "time"
 
 
 type Bid struct {
-	Id int
+	Id *int
 	Bid_Ammount int
 	Bid_Time time.Time
 	Users_Id *int
-	Listning_Id *int
+	Listing_Id *int
 }

@@ -2,13 +2,15 @@ package models
 
 import "time"
 
-type Listning struct {
-	Id int
-	Start_Price int
+type Listing struct {
+	Id *int
+	Name string
+	Description string
 	Buy_Now_Price int
-	Expiration_Time time.Time
+	Start_Price int
 	Created_At time.Time
+	Expiration_Time time.Time
 	Status string
-	Seller_Id int
-	Item_Id int
+	Seller_Id *int
+	Item_Id *int
 }

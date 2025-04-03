@@ -1,7 +1,7 @@
 package models
 
 type Item struct {
-	Id int
+	Id *int
 	Name string
 	Category string
 	Description string

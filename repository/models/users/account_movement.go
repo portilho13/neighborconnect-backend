@@ -2,9 +2,10 @@ package models
 
 import "time"
 
-type Withdraw struct {
+type Account_Movement struct {
 	Id int
 	Ammount int
 	Created_at time.Time
-	Account_id int
+	Account_id *int
+	Type string
 }
