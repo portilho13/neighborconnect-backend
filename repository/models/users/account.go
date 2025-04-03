@@ -5,5 +5,5 @@ type Account struct {
 	Account_number string
 	Balance float64
 	Currency string
-	Users_id int
+	Users_id *int
 }
