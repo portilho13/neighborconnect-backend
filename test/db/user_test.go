@@ -93,6 +93,9 @@ func TestLoginHandler(t *testing.T) {
 	CleanDatabase(dbPool, "users.users")
 
 	encodedPassword, err := utils.GenerateFromPassword("securepassword", utils.DefaultArgon2Params)
+	if err != nil {
+		t.Fatalf("Error hashing: %v", err)
+	}
 	// Step 1: Insert a test user
 	user := models.User{
 		Name:     "Alice Doe",
@@ -106,7 +109,7 @@ func TestLoginHandler(t *testing.T) {
 	// Test valid login
 	credentials := controllers_models.Credentials{Email: "alice@example.com", Password: "securepassword"}
 	body, _ := json.Marshal(credentials)
-	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", "/api/v1/client/login", bytes.NewBuffer(body))
 	w := httptest.NewRecorder()
 
 	controllers.LoginClient(w, req, dbPool)

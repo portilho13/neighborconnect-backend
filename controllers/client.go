@@ -93,7 +93,7 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	// Fetch user from the database
 	user, err := repositoryControllers.GetUserByEmail(creds.Email, dbPool)
 	if err != nil {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
 
