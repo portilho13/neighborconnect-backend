@@ -12,6 +12,7 @@ import (
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repository "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/users"
+	"github.com/portilho13/neighborconnect-backend/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -91,11 +92,12 @@ func TestLoginHandler(t *testing.T) {
 	// Ensure the database is clean before starting
 	CleanDatabase(dbPool, "users.users")
 
+	encodedPassword, err := utils.GenerateFromPassword("securepassword", utils.DefaultArgon2Params)
 	// Step 1: Insert a test user
 	user := models.User{
 		Name:     "Alice Doe",
 		Email:    "alice@example.com",
-		Password: "securepassword",
+		Password: encodedPassword,
 		Phone:    "911111111",
 	}
 	err = repository.CreateUser(user, dbPool)
