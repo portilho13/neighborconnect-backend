@@ -6,12 +6,15 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/users"
 	"github.com/portilho13/neighborconnect-backend/utils"
 )
+
+var store = sessions.NewCookieStore([]byte("super-secret-key"))
 
 func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool) {
 	var client controllers_models.UserJson
@@ -79,4 +82,42 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Client Registed !"})
+}
+
+func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// var creds controllers_models.UserJson
+	var creds controllers_models.Credentials
+	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch user from the database
+	user, err := repositoryControllers.GetUserByEmail(creds.Email, dbPool)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
+	}
+
+	// Verify password
+	_, err = utils.ComparePasswordAndHash(creds.Password, user.Password)
+	if err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	// Create a session
+	session, _ := store.Get(r, "session-name")
+	session.Values["user_id"] = user.Id
+	session.Values["email"] = user.Email
+	session.Save(r, w)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
 }

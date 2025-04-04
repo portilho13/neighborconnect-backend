@@ -12,3 +12,8 @@ func RegisterClientApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.RegisterClient(w, r, dbPool)
 	})
 }
+func LoginClientApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("POST /api/v1/client/login", func(w http.ResponseWriter, r *http.Request) {
+		controllers.LoginClient(w, r, dbPool)
+	})
+}
