@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
@@ -14,9 +13,7 @@ import (
 	"github.com/portilho13/neighborconnect-backend/utils"
 )
 
-var store = sessions.NewCookieStore([]byte("super-secret-key"))
-
-func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool) {
+func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	var client controllers_models.UserJson
 	err := json.NewDecoder(r.Body).Decode(&client)
 	if err != nil {
@@ -33,7 +30,7 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 
 	var apartmentID *int
 	if client.ApartmentID == 0 { // If apartment id is 0 it means user as not an a
-	// partment id set yet so apartment id needs to be converted to pointer to not blow the db
+		// partment id set yet so apartment id needs to be converted to pointer to not blow the db
 		apartmentID = nil
 	} else {
 		apartmentID = &client.ApartmentID
@@ -41,11 +38,11 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 
 	fmt.Println(client.Phone)
 
-	dbClient := models.User {
-		Name: client.Name,
-		Email: client.Email,
-		Password: encodedPassword,
-		Phone: client.Phone,
+	dbClient := models.User{
+		Name:         client.Name,
+		Email:        client.Email,
+		Password:     encodedPassword,
+		Phone:        client.Phone,
 		Apartment_id: apartmentID,
 	}
 
@@ -65,11 +62,11 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 		return
 	}
 
-	userAccount := models.Account {
+	userAccount := models.Account{
 		Account_number: utils.GenerateRandomHash(),
-		Balance: 0,
-		Currency: "EUR",
-		Users_id: &dbClient.Id,
+		Balance:        0,
+		Currency:       "EUR",
+		Users_id:       &dbClient.Id,
 	}
 
 	err = repositoryControllers.CreateAccount(userAccount, dbPool)
@@ -85,10 +82,6 @@ func RegisterClient(w http.ResponseWriter, r* http.Request, dbPool *pgxpool.Pool
 }
 
 func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
 
 	// var creds controllers_models.UserJson
 	var creds controllers_models.Credentials
@@ -112,7 +105,7 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	// Create a session
-	session, _ := store.Get(r, "session-name")
+	session, _ := utils.Store.Get(r, "session-name")
 	session.Values["user_id"] = user.Id
 	session.Values["email"] = user.Email
 	session.Save(r, w)
