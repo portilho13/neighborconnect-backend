@@ -13,12 +13,12 @@ import (
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
 
-
 func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	mux := http.NewServeMux()
 
 	routes.TestApiRoute(mux)
 	routes.RegisterClientApiRoute(mux, dbPool)
+	routes.LoginClientApiRoute(mux, dbPool)
 
 	nextMux := middleware.Logging(middleware.CORS(mux))
 
@@ -31,29 +31,28 @@ func main() {
 		log.Fatal(err)
 	}
 
-		// Get database URL
-		databaseURL := os.Getenv("DATABASE_URL")
-		if databaseURL == "" {
-			log.Fatal("DATABASE_URL is not set")
-		}
+	// Get database URL
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		log.Fatal("DATABASE_URL is not set")
+	}
 
-		apiIP := os.Getenv("API_IP")
-		if apiIP == "" {
-			log.Fatal("Api Ip not set")
-		}
-	
-		// Initialize database
-		dbPool, err := repository.InitDB(databaseURL)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer repository.CloseDB(dbPool)
+	apiIP := os.Getenv("API_IP")
+	if apiIP == "" {
+		log.Fatal("Api Ip not set")
+	}
 
+	// Initialize database
+	dbPool, err := repository.InitDB(databaseURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer repository.CloseDB(dbPool)
 
-	mux := InitializeRoutes(dbPool);
+	mux := InitializeRoutes(dbPool)
 	fmt.Println("Start listening on:", apiIP)
 	if err := http.ListenAndServe(apiIP, mux); err != nil {
 		log.Fatal(err)
 	}
-	
+
 }
