@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/portilho13/neighborconnect-backend/middleware"
+
 	"github.com/portilho13/neighborconnect-backend/repository"
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
