@@ -10,6 +10,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/portilho13/neighborconnect-backend/middleware"
 	"github.com/portilho13/neighborconnect-backend/repository"
+	repoControlers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
+	repoModels "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
 
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
@@ -49,6 +51,14 @@ func main() {
 		log.Fatal(err)
 	}
 	defer repository.CloseDB(dbPool)
+
+	item_photos := repoModels.Item_Photos{
+		Url: "ola",
+	}
+	err = repoControlers.CreateItemPhotos(item_photos, dbPool)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	mux := InitializeRoutes(dbPool)
 	fmt.Println("Start listening on:", apiIP)

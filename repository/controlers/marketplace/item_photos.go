@@ -9,7 +9,7 @@ import (
 
 func CreateItemPhotos(item_photos models.Item_Photos, dbPool *pgxpool.Pool) error {
 
-	query := `INSERT INTO marketplace.items_photos (url, item_id) 
+	query := `INSERT INTO marketplace.item_photos (url, item_id) 
 	VALUES ($1, $2)`
 
 	_, err := dbPool.Exec(context.Background(), query,
@@ -25,7 +25,7 @@ func CreateItemPhotos(item_photos models.Item_Photos, dbPool *pgxpool.Pool) erro
 }
 
 func GetItemPhotosById(id int, dbPool *pgxpool.Pool) ([]models.Item_Photos, error) {
-	query := `SELECT (id, url, item_id) FROM marketplace.items_photos WHERE item_id = $1`
+	query := `SELECT (id, url, item_id) FROM marketplace.item_photos WHERE item_id = $1`
 	rows, err := dbPool.Query(context.Background(), query, id)
 	if err != nil {
 		return nil, err
