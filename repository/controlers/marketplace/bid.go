@@ -24,7 +24,7 @@ func CreateBid(bid models.Bid, dbPool *pgxpool.Pool) error {
 }
 
 func GetBidByListningId(id int, dbPool *pgxpool.Pool) ([]models.Bid, error) {
-	query := `SELECT (id, bid_ammount, bid_time, users_id, listing_id) FROM marketplace.bid WHERE listing_id = $1 ORDER BY bid_ammount DESC`
+	query := `SELECT id, bid_ammount, bid_time, users_id, listing_id FROM marketplace.bid WHERE listing_id = $1 ORDER BY bid_ammount DESC`
 
 	rows, err := dbPool.Query(context.Background(), query, id)
 	if err != nil {
