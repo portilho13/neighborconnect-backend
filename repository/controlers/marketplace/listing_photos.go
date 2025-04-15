@@ -7,14 +7,14 @@ import (
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
 )
 
-func CreateItemPhotos(item_photos models.Item_Photos, dbPool *pgxpool.Pool) error {
+func CreateListingPhotos(item_photos models.Listing_Photos, dbPool *pgxpool.Pool) error {
 
-	query := `INSERT INTO marketplace.item_photos (url, item_id) 
+	query := `INSERT INTO marketplace.listing_photos (url, listing_id) 
 	VALUES ($1, $2)`
 
 	_, err := dbPool.Exec(context.Background(), query,
 		item_photos.Url,
-		item_photos.Item_Id,
+		item_photos.Listing_Id,
 	)
 
 	if err != nil {
@@ -24,22 +24,22 @@ func CreateItemPhotos(item_photos models.Item_Photos, dbPool *pgxpool.Pool) erro
 	return nil
 }
 
-func GetItemPhotosById(id int, dbPool *pgxpool.Pool) ([]models.Item_Photos, error) {
-	query := `SELECT (id, url, item_id) FROM marketplace.item_photos WHERE item_id = $1`
+func GetListingPhotosById(id int, dbPool *pgxpool.Pool) ([]models.Listing_Photos, error) {
+	query := `SELECT (id, url, listing_id) FROM marketplace.listing_photos WHERE item_id = $1`
 	rows, err := dbPool.Query(context.Background(), query, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var item_photos []models.Item_Photos
+	var item_photos []models.Listing_Photos
 
 	for rows.Next() {
-		var item_photo models.Item_Photos
+		var item_photo models.Listing_Photos
 		err := rows.Scan(
 			&item_photo.Id,
 			&item_photo.Url,
-			&item_photo.Item_Id,
+			&item_photo.Listing_Id,
 		)
 
 		if err != nil {
