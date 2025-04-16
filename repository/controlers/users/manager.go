@@ -9,12 +9,12 @@ import (
 
 func CreateManager(manager models.Manager, dbPool *pgxpool.Pool) error {
 	query := `INSERT INTO users.manager (name, email, password, phone) VALUES ($1, $2, $3, $4)`
-	
+
 	_, err := dbPool.Exec(context.Background(), query,
-	manager.Name,
-	manager.Email,
-	manager.Password,
-	manager.Phone,
+		manager.Name,
+		manager.Email,
+		manager.Password,
+		manager.Phone,
 	)
 
 	if err != nil {
