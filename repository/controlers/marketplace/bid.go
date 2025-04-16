@@ -12,7 +12,7 @@ func CreateBid(bid models.Bid, dbPool *pgxpool.Pool) error {
 	_, err := dbPool.Exec(context.Background(), query,
 		bid.Bid_Ammount,
 		bid.Bid_Time,
-		bid.Users_Id,
+		bid.User_Id,
 		bid.Listing_Id,
 	)
 
@@ -40,7 +40,7 @@ func GetBidByListningId(id int, dbPool *pgxpool.Pool) ([]models.Bid, error) {
 			&bid.Id,
 			&bid.Bid_Ammount,
 			&bid.Bid_Time,
-			&bid.Users_Id,
+			&bid.User_Id,
 			&bid.Listing_Id,
 		)
 

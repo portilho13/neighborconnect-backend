@@ -11,6 +11,7 @@ import (
 	"github.com/portilho13/neighborconnect-backend/middleware"
 	"github.com/portilho13/neighborconnect-backend/repository"
 	"github.com/portilho13/neighborconnect-backend/routes"
+	"github.com/portilho13/neighborconnect-backend/ws"
 )
 
 func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
@@ -19,6 +20,11 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.TestApiRoute(mux)
 	routes.RegisterClientApiRoute(mux, dbPool)
 	routes.LoginClientApiRoute(mux, dbPool)
+	routes.CreateListingApiRoute(mux, dbPool)
+	routes.GetListingByIdApiRoute(mux, dbPool)
+	routes.GetAllListingApiRoute(mux, dbPool)
+	routes.CreateBidApiRoute(mux, dbPool)
+	routes.RegisterWebSocketRoute(mux)
 
 	nextMux := middleware.Logging(middleware.CORS(mux))
 
@@ -50,6 +56,8 @@ func main() {
 	defer repository.CloseDB(dbPool)
 
 	mux := InitializeRoutes(dbPool)
+	go ws.Hub.Run()
+
 	fmt.Println("Start listening on:", apiIP)
 	if err := http.ListenAndServe(apiIP, mux); err != nil {
 		log.Fatal(err)
