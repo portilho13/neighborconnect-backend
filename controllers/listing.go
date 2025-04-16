@@ -87,3 +87,33 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		return
 	}
 }
+
+func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	listings, err := repositoryControllers.GetAllListings(dbPool)
+	if err != nil {
+		http.Error(w, "Failed fetch listings", http.StatusInternalServerError)
+		return
+	}
+
+	var listingsJson []controllers_models.ListingInfo
+
+	for _, listing := range listings {
+		listingsJson = append(listingsJson, controllers_models.ListingInfo{
+			Name:            listing.Name,
+			Description:     listing.Description,
+			Buy_Now_Price:   listing.Buy_Now_Price,
+			Start_Price:     listing.Start_Price,
+			Created_At:      listing.Created_At,
+			Expiration_Time: listing.Expiration_Time,
+			Status:          listing.Status,
+			Seller_Id:       listing.Seller_Id,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(listingsJson); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
