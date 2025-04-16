@@ -57,6 +57,7 @@ func main() {
 
 	mux := InitializeRoutes(dbPool)
 	go ws.Hub.Run()
+
 	fmt.Println("Start listening on:", apiIP)
 	if err := http.ListenAndServe(apiIP, mux); err != nil {
 		log.Fatal(err)

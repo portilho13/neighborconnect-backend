@@ -13,38 +13,38 @@ type Client struct {
 }
 
 type HubS struct {
-	clients    map[*Client]bool
-	broadcast  chan []byte
-	register   chan *Client
-	unregister chan *Client
+	Clients    map[*Client]bool
+	Broadcast  chan []byte
+	Register   chan *Client
+	Unregister chan *Client
 }
 
 // Exported Hub variable to be accessible from main package
 var Hub = HubS{
-	clients:    make(map[*Client]bool),
-	broadcast:  make(chan []byte),
-	register:   make(chan *Client),
-	unregister: make(chan *Client),
+	Clients:    make(map[*Client]bool),
+	Broadcast:  make(chan []byte),
+	Register:   make(chan *Client),
+	Unregister: make(chan *Client),
 }
 
 // Run starts the WebSocket hub
 func (h *HubS) Run() {
 	for {
 		select {
-		case client := <-h.register:
-			h.clients[client] = true
-		case client := <-h.unregister:
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
+		case client := <-h.Register:
+			h.Clients[client] = true
+		case client := <-h.Unregister:
+			if _, ok := h.Clients[client]; ok {
+				delete(h.Clients, client)
 				close(client.send)
 			}
-		case message := <-h.broadcast:
-			for client := range h.clients {
+		case message := <-h.Broadcast:
+			for client := range h.Clients {
 				select {
 				case client.send <- message:
 				default:
 					close(client.send)
-					delete(h.clients, client)
+					delete(h.Clients, client)
 				}
 			}
 		}
@@ -62,12 +62,11 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &Client{conn: conn, send: make(chan []byte, 256)}
-	Hub.register <- client
+	Hub.Register <- client
 
 	go client.writePump()
 }
 
-// writePump sends messages to the client
 func (c *Client) writePump() {
 	for {
 		select {
