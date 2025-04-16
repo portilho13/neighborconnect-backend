@@ -18,14 +18,14 @@ func CreateListingPhotos(item_photos models.Listing_Photos, dbPool *pgxpool.Pool
 	)
 
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return nil
 }
 
 func GetListingPhotosById(id int, dbPool *pgxpool.Pool) ([]models.Listing_Photos, error) {
-	query := `SELECT (id, url, listing_id) FROM marketplace.listing_photos WHERE item_id = $1`
+	query := `SELECT id, url, listing_id FROM marketplace.listing_photos WHERE item_id = $1`
 	rows, err := dbPool.Query(context.Background(), query, id)
 	if err != nil {
 		return nil, err

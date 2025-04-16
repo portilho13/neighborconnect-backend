@@ -10,7 +10,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/portilho13/neighborconnect-backend/middleware"
 	"github.com/portilho13/neighborconnect-backend/repository"
-
 	"github.com/portilho13/neighborconnect-backend/routes"
 )
 
