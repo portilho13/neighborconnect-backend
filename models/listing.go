@@ -19,5 +19,5 @@ type ListingInfo struct {
 	Created_At      time.Time `json:"created_at"`
 	Expiration_Time time.Time `json:"expiration_time"`
 	Status          string    `json:"status"`
-	Seller_Id       int       `json:"seller_id"`
+	Seller_Id       *int      `json:"seller_id"` // Remove this in prod
 }

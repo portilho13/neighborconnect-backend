@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -50,4 +51,39 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Listing Created !"})
+}
+
+func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	query := r.URL.Query()
+	idStr := query.Get("id")
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
+
+	listing, err := repositoryControllers.GetListingById(id, dbPool)
+	if err != nil {
+		http.Error(w, "Invalid listing", http.StatusBadRequest)
+		return
+	}
+
+	listingJson := controllers_models.ListingInfo{
+		Name:            listing.Name,
+		Description:     listing.Description,
+		Buy_Now_Price:   listing.Buy_Now_Price,
+		Start_Price:     listing.Start_Price,
+		Created_At:      listing.Created_At,
+		Expiration_Time: listing.Expiration_Time,
+		Status:          listing.Status,
+		Seller_Id:       listing.Seller_Id,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(listingJson); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }

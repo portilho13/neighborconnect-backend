@@ -12,3 +12,9 @@ func CreateListingApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.CreateListing(w, r, dbPool)
 	})
 }
+
+func GetListingByIdApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("GET /api/v1/listing", func(w http.ResponseWriter, r *http.Request) {
+		controllers.GetListingById(w, r, dbPool)
+	})
+}
