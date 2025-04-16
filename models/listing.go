@@ -8,6 +8,7 @@ type ListingCreation struct {
 	Buy_Now_Price   int       `json:"buy_now_price"`
 	Start_Price     int       `json:"start_price"`
 	Expiration_Time time.Time `json:"expiration_time"`
+	Seller_Id       int       `json:"seller_id"`
 }
 
 type ListingInfo struct {

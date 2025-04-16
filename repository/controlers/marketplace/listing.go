@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
@@ -11,6 +12,8 @@ func CreateListing(listing models.Listing, dbPool *pgxpool.Pool) error {
 	query := `INSERT INTO marketplace.listing 
 	(name, description, buy_now_price, start_price, created_at, expiration_time, status, seller_id) 
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+
+	fmt.Println(listing.Created_At)
 
 	_, err := dbPool.Exec(context.Background(), query,
 		listing.Name,
