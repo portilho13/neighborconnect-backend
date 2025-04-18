@@ -89,7 +89,7 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 }
 
 func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
-	listings, err := repositoryControllers.GetAllListings(dbPool)
+	listings, err := repositoryControllers.GetAllActiveListings(dbPool)
 	if err != nil {
 		http.Error(w, "Failed fetch listings", http.StatusInternalServerError)
 		return

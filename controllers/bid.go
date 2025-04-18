@@ -9,6 +9,7 @@ import (
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
+	"github.com/portilho13/neighborconnect-backend/utils"
 	"github.com/portilho13/neighborconnect-backend/ws"
 )
 
@@ -21,10 +22,30 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		return
 	}
 
-	_, err = repositoryControllers.GetListingById(*bidJSON.Listing_Id, dbPool) // Check if listing is valid
+	//Dont need to fetch all active listings because frontend will only send active listings
+	listing, err := repositoryControllers.GetListingById(*bidJSON.Listing_Id, dbPool) // Check if listing is valid
 	if err != nil {
 		http.Error(w, "Invalid Listing", http.StatusBadRequest)
 		return
+	}
+
+	// Double check if status is active due to someone crawling api
+	if listing.Status != "active" {
+		http.Error(w, "Invalid Listing", http.StatusBadRequest)
+		return
+	}
+
+	//Lazy check is listing is over
+	timeNow := time.Now()
+	if timeNow.After(listing.Expiration_Time) {
+		err = utils.CloseListing(*listing.Id, dbPool)
+		if err != nil {
+			http.Error(w, "Invalid Listing", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "Listing is Closed", http.StatusBadRequest)
+		return
+
 	}
 
 	bids, err := repositoryControllers.GetBidByListningId(*bidJSON.Listing_Id, dbPool) // Get current bids for listings
