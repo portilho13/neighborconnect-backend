@@ -9,6 +9,7 @@ import (
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
+	"github.com/portilho13/neighborconnect-backend/utils"
 	"github.com/portilho13/neighborconnect-backend/ws"
 )
 
@@ -37,7 +38,7 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	//Lazy check is listing is over
 	timeNow := time.Now()
 	if timeNow.After(listing.Expiration_Time) {
-		err = repositoryControllers.UpdateListingStatus("closed", *listing.Id, dbPool)
+		err = utils.CloseListing(*listing.Id, dbPool)
 		if err != nil {
 			http.Error(w, "Invalid Listing", http.StatusBadRequest)
 			return

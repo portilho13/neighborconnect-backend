@@ -1,0 +1,46 @@
+package utils
+
+import (
+	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
+	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
+)
+
+func CloseListing(id int, dbPool *pgxpool.Pool) error {
+	err := repositoryControllers.UpdateListingStatus("closed", id, dbPool)
+	if err != nil {
+		return err
+	}
+
+	listing, err := repositoryControllers.GetListingById(id, dbPool)
+	if err != nil {
+		return err
+	}
+
+	sellerId := listing.Seller_Id
+
+	bids, err := repositoryControllers.GetBidByListningId(id, dbPool)
+	if err != nil {
+		return err
+	}
+
+	highestBidder := bids[0]
+
+	transaction := models.Transaction{
+		Final_Price:      highestBidder.Bid_Ammount,
+		Transaction_Time: time.Now(),
+		Transaction_Type: "bid",
+		Seller_Id:        sellerId,
+		Buyer_Id:         highestBidder.Id,
+		Listing_Id:       listing.Id,
+	}
+
+	err = repositoryControllers.CreateTransaction(transaction, dbPool)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
