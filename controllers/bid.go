@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -78,13 +79,10 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 			return
 		}
 
-		highestBidJSON, err := json.Marshal(bidJSON.Bid_Ammount)
-		if err != nil {
-			http.Error(w, "Error converting", http.StatusBadRequest)
-			return
+		ws.Hub.Broadcast <- ws.BroadcastMessage{
+			ListingID: strconv.Itoa(*bidJSON.Listing_Id),
+			Message:   []byte(strconv.Itoa(bidJSON.Bid_Ammount)),
 		}
-
-		ws.Hub.Broadcast <- highestBidJSON
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"message": "Bid Created !"})
