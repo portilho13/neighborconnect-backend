@@ -101,9 +101,21 @@ func ServeWs(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		log.Fatal(err)
 	}
 
-	Hub.Broadcast <- BroadcastMessage{
-		ListingID: listingID,
-		Message:   []byte(strconv.Itoa(bids[0].Bid_Ammount)),
+	listing, err := repositoryControllers.GetListingById(listingIdInt, dbPool)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(bids) == 0 {
+		Hub.Broadcast <- BroadcastMessage{
+			ListingID: listingID,
+			Message:   []byte(strconv.Itoa(listing.Start_Price)),
+		}
+	} else {
+		Hub.Broadcast <- BroadcastMessage{
+			ListingID: listingID,
+			Message:   []byte(strconv.Itoa(bids[0].Bid_Ammount)),
+		}
 	}
 
 	go client.writePump()
