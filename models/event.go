@@ -1,0 +1,29 @@
+package controllers_models
+
+import "time"
+
+type EventCreation struct {
+	Name        string        `json:"name"`
+	Percentage  float64       `json:"percentage"`
+	Capacity    int           `json:"capacity"`
+	Date_time   time.Time     `json:"date_time"`
+	Manager_Id  int           `json:"manager_id"`
+	Event_Image string        `json:"event_image"`
+	Duration    time.Duration `json:"duration"`
+}
+
+type EventInfo struct {
+	Id          int           `json:"id"`
+	Name        string        `json:"name"`
+	Percentage  float64       `json:"percentage"`
+	Capacity    int           `json:"capacity"`
+	Date_time   time.Time     `json:"date_time"`
+	Manager_Id  int           `json:"manager_id"`
+	Event_Image string        `json:"event_image"`
+	Duration    time.Duration `json:"duration"`
+}
+
+type JoinEvent struct {
+	Community_Event_Id int `json:"community_event_id"`
+	User_Id            int `json:"user_id"`
+}

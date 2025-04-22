@@ -25,6 +25,7 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.GetAllListingApiRoute(mux, dbPool)
 	routes.CreateBidApiRoute(mux, dbPool)
 	routes.RegisterWebSocketRoute(mux, dbPool)
+	routes.CreateEventApiRoute(mux, dbPool)
 
 	nextMux := middleware.Logging(middleware.CORS(mux))
 
