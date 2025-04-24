@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -35,8 +34,6 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	} else {
 		apartmentID = &client.ApartmentID
 	}
-
-	fmt.Println(client.Phone)
 
 	dbClient := models.User{
 		Name:         client.Name,
