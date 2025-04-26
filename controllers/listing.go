@@ -98,11 +98,23 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	var listingsJson []controllers_models.ListingInfo
 
 	for _, listing := range listings {
+		bids, err := repositoryControllers.GetBidByListningId(*listing.Id, dbPool)
+		var highestBid int
+		if len(bids) == 0 {
+			highestBid = listing.Start_Price
+		} else {
+			highestBid = bids[0].Bid_Ammount
+		}
+		if err != nil {
+			http.Error(w, "Failed fetch listings", http.StatusInternalServerError)
+			return
+		}
 		listingsJson = append(listingsJson, controllers_models.ListingInfo{
 			Name:            listing.Name,
 			Description:     listing.Description,
 			Buy_Now_Price:   listing.Buy_Now_Price,
 			Start_Price:     listing.Start_Price,
+			Current_bid: highestBid,
 			Created_At:      listing.Created_At,
 			Expiration_Time: listing.Expiration_Time,
 			Status:          listing.Status,

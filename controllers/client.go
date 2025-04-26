@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -46,7 +45,6 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	err = repositoryControllers.CreateUser(dbClient, dbPool)
 	if err != nil {
-		log.Printf("-%v", err)
 		http.Error(w, "Error creating user", http.StatusBadGateway)
 		return
 	}
@@ -55,7 +53,6 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	dbClient, err = repositoryControllers.GetUserByEmail(clientEmail, dbPool)
 	if err != nil {
-		log.Printf("-%v", err)
 		http.Error(w, "Error creating user", http.StatusBadGateway)
 		return
 	}
@@ -87,8 +84,6 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-
-	fmt.Println(creds)
 
 	// Fetch user from the database
 	user, err := repositoryControllers.GetUserByEmail(creds.Email, dbPool)
