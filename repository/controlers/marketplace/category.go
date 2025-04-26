@@ -8,11 +8,12 @@ import (
 )
 
 func CreateCategory(category models.Category, dbPool *pgxpool.Pool) error {
-	query := `INSERT INTO marketplace.category (name) 
-	VALUES ($1)`
+	query := `INSERT INTO marketplace.category (name, url) 
+	VALUES ($1, $2)`
 
 	_, err := dbPool.Exec(context.Background(), query,
 		category.Name,
+		category.Url,
 	)
 
 	if err != nil {
@@ -25,7 +26,7 @@ func CreateCategory(category models.Category, dbPool *pgxpool.Pool) error {
 func GetAllCategories(dbPool *pgxpool.Pool) ([]models.Category, error) {
 	var categories []models.Category
 
-	query := `SELECT id, name FROM marketplace.category`
+	query := `SELECT id, name, url FROM marketplace.category`
 
 	rows, err := dbPool.Query(context.Background(), query)
 	if err != nil {
@@ -38,6 +39,7 @@ func GetAllCategories(dbPool *pgxpool.Pool) ([]models.Category, error) {
 		err := rows.Scan(
 			&category.Id,
 			&category.Name,
+			&category.Url,
 		)
 
 		if err != nil {

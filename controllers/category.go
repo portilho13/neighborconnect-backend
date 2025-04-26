@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -21,9 +20,16 @@ func GetCategories(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	var categoriesJson []controllers_models.CategoryJson
 
 	for _, category := range categories {
+		var url string
+		if category.Url == nil {
+			url = ""
+		} else {
+			url = *category.Url
+		}
 		categoryJson := controllers_models.CategoryJson {
-			Id: *category.Id,
+			Id: category.Id,
 			Name: category.Name,
+			Url: url,
 		}
 
 		categoriesJson = append(categoriesJson, categoryJson)
@@ -40,8 +46,6 @@ func GetCategories(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 func CreateCategory(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	var category controllers_models.CategoryJson
 	err := json.NewDecoder(r.Body).Decode(&category)
-
-	fmt.Println(category)
 	
 	if err != nil {
 		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
