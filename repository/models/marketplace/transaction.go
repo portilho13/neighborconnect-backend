@@ -10,4 +10,6 @@ type Transaction struct {
 	Seller_Id        *int
 	Buyer_Id         *int
 	Listing_Id       *int
+	Payment_Status string
+	Payment_Due_time time.Time
 }

@@ -8,8 +8,8 @@ import (
 )
 
 func CreateTransaction(transaction models.Transaction, dbPool *pgxpool.Pool) error {
-	query := `INSERT INTO marketplace.transaction (final_price, transaction_time, transaction_type, seller_id, buyer_id, listing_id) 
-	VALUES ($1, $2, $3, $4, $5, $6)`
+	query := `INSERT INTO marketplace.transaction (final_price, transaction_time, transaction_type, seller_id, buyer_id, listing_id, payment_status, payment_due_time) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	_, err := dbPool.Exec(context.Background(), query,
 		transaction.Final_Price,
@@ -18,6 +18,8 @@ func CreateTransaction(transaction models.Transaction, dbPool *pgxpool.Pool) err
 		transaction.Seller_Id,
 		transaction.Buyer_Id,
 		transaction.Listing_Id,
+		transaction.Payment_Status,
+		transaction.Payment_Due_time,
 	)
 
 	if err != nil {
@@ -29,7 +31,7 @@ func CreateTransaction(transaction models.Transaction, dbPool *pgxpool.Pool) err
 }
 
 func GetTransactionById(id int, dbPool *pgxpool.Pool) (models.Transaction, error) {
-	query := `SELECT id, final_price, transaction_time, transaction_type, buyer_id, seller_id, listing_id`
+	query := `SELECT id, final_price, transaction_time, transaction_type, buyer_id, seller_id, listing_id, payment_status, payment_due_time`
 
 	var transaction models.Transaction
 
@@ -41,6 +43,8 @@ func GetTransactionById(id int, dbPool *pgxpool.Pool) (models.Transaction, error
 		&transaction.Buyer_Id,
 		&transaction.Seller_Id,
 		&transaction.Listing_Id,
+		&transaction.Payment_Status,
+		&transaction.Payment_Due_time,
 	)
 
 	if err != nil {
