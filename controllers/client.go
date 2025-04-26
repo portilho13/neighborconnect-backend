@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -87,6 +88,8 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		return
 	}
 
+	fmt.Println(creds)
+
 	// Fetch user from the database
 	user, err := repositoryControllers.GetUserByEmail(creds.Email, dbPool)
 	if err != nil {
@@ -107,7 +110,20 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	session.Values["email"] = user.Email
 	session.Save(r, w)
 
+	avatar := ""
+	if user.Profile_Picture != nil {
+		avatar = *user.Profile_Picture
+	}
+
+	userJson := controllers_models.UserLogin{
+		Name:        user.Name,
+		Email:       user.Email,
+		Phone:       user.Phone,
+		ApartmentID: *user.Apartment_id,
+		Avatar:      avatar,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
+	json.NewEncoder(w).Encode(userJson)
 }
