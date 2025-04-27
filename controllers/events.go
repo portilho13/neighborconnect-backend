@@ -36,6 +36,8 @@ func CreateEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		Manager_Id:  managerId,
 		Event_Image: &eventJson.Event_Image,
 		Duration:    eventJson.Duration,
+		Local: eventJson.Local,
+		Current_Ocupation: 0,
 	}
 
 	err = repositoryControllers.CreateCommunityEvent(event, dbPool)
@@ -48,3 +50,38 @@ func CreateEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Event Created Sucessfully"})
 }
+
+func GetEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	var eventJsonList []controllers_models.EventInfo
+
+
+	events, err := repositoryControllers.GetAllEvents(dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Events", http.StatusBadRequest)
+		return
+	}
+
+	for _, event := range events {
+		eventJsonList = append(eventJsonList, controllers_models.EventInfo{
+			Id: *event.Id,
+			Name: event.Name,
+			Percentage: event.Percentage,
+			Capacity: event.Capacity,
+			Date_time: event.Date_Time,
+			Manager_Id: *event.Manager_Id,
+			Event_Image: *event.Event_Image,
+			Duration: event.Duration,
+			Local: event.Local,
+			Current_Ocupation: event.Current_Ocupation,
+		})
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(eventJsonList); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}}
+
+

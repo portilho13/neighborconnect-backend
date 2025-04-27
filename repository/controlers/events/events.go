@@ -8,7 +8,7 @@ import (
 )
 
 func CreateCommunityEvent(event models.Community_Event, dbPool *pgxpool.Pool) error {
-	query := `INSERT INTO events.community_event (name, percentage, code, capacity, date_time, manager_id, event_image, duration) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	query := `INSERT INTO events.community_event (name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 	_, err := dbPool.Exec(context.Background(), query,
 		event.Name,
 		event.Percentage,
@@ -18,6 +18,8 @@ func CreateCommunityEvent(event models.Community_Event, dbPool *pgxpool.Pool) er
 		event.Manager_Id,
 		event.Event_Image,
 		event.Duration,
+		event.Local,
+		event.Current_Ocupation,
 	)
 
 	if err != nil {
@@ -38,4 +40,49 @@ func AddUserToCommunityEvent(userId int, eventId int, dbPool *pgxpool.Pool) erro
 	}
 	return nil
 
+}
+
+func GetAllEvents(dbPool *pgxpool.Pool) ([]models.Community_Event, error) {
+	var events []models.Community_Event
+
+	query := `SELECT name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation
+	FROM events.community_event`
+
+	rows, err := dbPool.Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var event models.Community_Event
+
+		err := rows.Scan(
+			&event.Id,
+			&event.Name,
+			&event.Percentage,
+			&event.Code,
+			&event.Capacity,
+			&event.Date_Time,
+			&event.Manager_Id,
+			&event.Event_Image,
+			&event.Duration,
+			&event.Local,
+			&event.Current_Ocupation,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, event)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+
+	return events, nil
 }

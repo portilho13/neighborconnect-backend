@@ -10,6 +10,7 @@ type EventCreation struct {
 	Manager_Id  int           `json:"manager_id"`
 	Event_Image string        `json:"event_image"`
 	Duration    time.Duration `json:"duration"`
+	Local string `json:"local"`
 }
 
 type EventInfo struct {
@@ -21,6 +22,8 @@ type EventInfo struct {
 	Manager_Id  int           `json:"manager_id"`
 	Event_Image string        `json:"event_image"`
 	Duration    time.Duration `json:"duration"`
+	Local string `json:"local"`
+	Current_Ocupation int `json:"current_ocupation"`
 }
 
 type JoinEvent struct {
