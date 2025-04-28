@@ -12,3 +12,9 @@ func CreateEventApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.CreateEvent(w, r, dbPool)
 	})
 }
+
+func GetEventsApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("GET /api/v1/event", func(w http.ResponseWriter, r *http.Request) {
+		controllers.GetEvents(w, r, dbPool)
+	})
+}

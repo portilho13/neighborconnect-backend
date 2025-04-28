@@ -45,7 +45,7 @@ func AddUserToCommunityEvent(userId int, eventId int, dbPool *pgxpool.Pool) erro
 func GetAllEvents(dbPool *pgxpool.Pool) ([]models.Community_Event, error) {
 	var events []models.Community_Event
 
-	query := `SELECT name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation
+	query := `SELECT id, name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation
 	FROM events.community_event`
 
 	rows, err := dbPool.Query(context.Background(), query)
