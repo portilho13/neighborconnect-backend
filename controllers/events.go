@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
@@ -54,26 +55,58 @@ func CreateEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 func GetEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	var eventJsonList []controllers_models.EventInfo
 
-	events, err := repositoryControllers.GetAllEvents(dbPool)
-	if err != nil {
-		http.Error(w, "Error Fetching Events", http.StatusBadRequest)
-		return
-	}
+	userID_str := r.URL.Query().Get("user_id")
 
-	for _, event := range events {
-		eventJsonList = append(eventJsonList, controllers_models.EventInfo{
-			Id:                *event.Id,
-			Name:              event.Name,
-			Percentage:        event.Percentage,
-			Capacity:          event.Capacity,
-			Date_time:         event.Date_Time,
-			Manager_Id:        *event.Manager_Id,
-			Event_Image:       *event.Event_Image,
-			Duration:          event.Duration,
-			Local:             event.Local,
-			Current_Ocupation: event.Current_Ocupation,
-		})
+	if userID_str != "" {
+		userId, err := strconv.Atoi(userID_str)
+		if err != nil {
+			http.Error(w, "Error Converting User Id", http.StatusInternalServerError)
+			return
+		}
 
+		events, err := repositoryControllers.GetEventsByUserId(userId, dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching Events", http.StatusBadRequest)
+			return
+		}
+
+		for _, event := range events {
+			eventJsonList = append(eventJsonList, controllers_models.EventInfo{
+				Id:                *event.Id,
+				Name:              event.Name,
+				Percentage:        event.Percentage,
+				Capacity:          event.Capacity,
+				Date_time:         event.Date_Time,
+				Manager_Id:        *event.Manager_Id,
+				Event_Image:       *event.Event_Image,
+				Duration:          event.Duration,
+				Local:             event.Local,
+				Current_Ocupation: event.Current_Ocupation,
+			})
+
+		}
+	} else {
+		events, err := repositoryControllers.GetAllEvents(dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching Events", http.StatusBadRequest)
+			return
+		}
+
+		for _, event := range events {
+			eventJsonList = append(eventJsonList, controllers_models.EventInfo{
+				Id:                *event.Id,
+				Name:              event.Name,
+				Percentage:        event.Percentage,
+				Capacity:          event.Capacity,
+				Date_time:         event.Date_Time,
+				Manager_Id:        *event.Manager_Id,
+				Event_Image:       *event.Event_Image,
+				Duration:          event.Duration,
+				Local:             event.Local,
+				Current_Ocupation: event.Current_Ocupation,
+			})
+
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

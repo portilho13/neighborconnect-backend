@@ -111,6 +111,7 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	userJson := controllers_models.UserLogin{
+		Id:          user.Id,
 		Name:        user.Name,
 		Email:       user.Email,
 		Phone:       user.Phone,
