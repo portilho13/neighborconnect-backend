@@ -28,15 +28,15 @@ func CreateEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	event := models.Community_Event{
-		Name:        eventJson.Name,
-		Percentage:  eventJson.Percentage,
-		Code:        utils.GenerateRandomEventCode(),
-		Capacity:    eventJson.Capacity,
-		Date_Time:   eventJson.Date_time,
-		Manager_Id:  managerId,
-		Event_Image: &eventJson.Event_Image,
-		Duration:    eventJson.Duration,
-		Local: eventJson.Local,
+		Name:              eventJson.Name,
+		Percentage:        eventJson.Percentage,
+		Code:              utils.GenerateRandomEventCode(),
+		Capacity:          eventJson.Capacity,
+		Date_Time:         eventJson.Date_time,
+		Manager_Id:        managerId,
+		Event_Image:       &eventJson.Event_Image,
+		Duration:          eventJson.Duration,
+		Local:             eventJson.Local,
 		Current_Ocupation: 0,
 	}
 
@@ -54,7 +54,6 @@ func CreateEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 func GetEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	var eventJsonList []controllers_models.EventInfo
 
-
 	events, err := repositoryControllers.GetAllEvents(dbPool)
 	if err != nil {
 		http.Error(w, "Error Fetching Events", http.StatusBadRequest)
@@ -63,15 +62,15 @@ func GetEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 
 	for _, event := range events {
 		eventJsonList = append(eventJsonList, controllers_models.EventInfo{
-			Id: *event.Id,
-			Name: event.Name,
-			Percentage: event.Percentage,
-			Capacity: event.Capacity,
-			Date_time: event.Date_Time,
-			Manager_Id: *event.Manager_Id,
-			Event_Image: *event.Event_Image,
-			Duration: event.Duration,
-			Local: event.Local,
+			Id:                *event.Id,
+			Name:              event.Name,
+			Percentage:        event.Percentage,
+			Capacity:          event.Capacity,
+			Date_time:         event.Date_Time,
+			Manager_Id:        *event.Manager_Id,
+			Event_Image:       *event.Event_Image,
+			Duration:          event.Duration,
+			Local:             event.Local,
 			Current_Ocupation: event.Current_Ocupation,
 		})
 
@@ -82,6 +81,25 @@ func GetEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	if err := json.NewEncoder(w).Encode(eventJsonList); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
-	}}
+	}
+}
 
+func AddUserToEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	var joinEventJson controllers_models.JoinEvent
 
+	err := json.NewDecoder(r.Body).Decode(&joinEventJson)
+	if err != nil {
+		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
+		return
+	}
+
+	err = repositoryControllers.AddUserToCommunityEvent(joinEventJson.User_Id, joinEventJson.Community_Event_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Adding User to Event", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "User Added Sucessfully"})
+}
