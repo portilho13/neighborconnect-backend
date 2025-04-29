@@ -1,6 +1,13 @@
 package utils
 
-import "time"
+import (
+	"log"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
+	"github.com/robfig/cron/v3"
+)
 
 func ConvertMonthToInt(month time.Month) int {
 	switch month {
@@ -30,4 +37,24 @@ func ConvertMonthToInt(month time.Month) int {
 			return 12
 	}
 	return -1
+}
+
+
+func AutomateRents(dbPool *pgxpool.Pool) {
+	c := cron.New(cron.WithSeconds())
+	c.AddFunc("0 0 1 * *", func() { // Every month at 00:00
+		err := repositoryControllers.CreateRent(dbPool)
+		if err != nil {
+			log.Printf("Error creating rent %v", err)
+		} else {
+			log.Println("Rent Created Sucessfully")
+		}
+	})
+
+	c.Start()
+
+	defer c.Stop()
+
+	select {}
+	
 }

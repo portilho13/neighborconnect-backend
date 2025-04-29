@@ -11,6 +11,7 @@ import (
 	"github.com/portilho13/neighborconnect-backend/middleware"
 	"github.com/portilho13/neighborconnect-backend/repository"
 	"github.com/portilho13/neighborconnect-backend/routes"
+	"github.com/portilho13/neighborconnect-backend/utils"
 	"github.com/portilho13/neighborconnect-backend/ws"
 )
 
@@ -59,6 +60,8 @@ func main() {
 		log.Fatal(err)
 	}
 	defer repository.CloseDB(dbPool)
+
+	go utils.AutomateRents(dbPool)
 
 	mux := InitializeRoutes(dbPool)
 	go ws.Hub.Run()
