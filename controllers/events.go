@@ -71,6 +71,10 @@ func GetEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		}
 
 		for _, event := range events {
+			eventImage := ""
+			if event.Event_Image != nil {
+				eventImage = *event.Event_Image
+			}
 			eventJsonList = append(eventJsonList, controllers_models.EventInfo{
 				Id:                *event.Id,
 				Name:              event.Name,
@@ -78,7 +82,7 @@ func GetEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 				Capacity:          event.Capacity,
 				Date_time:         event.Date_Time,
 				Manager_Id:        *event.Manager_Id,
-				Event_Image:       *event.Event_Image,
+				Event_Image:       eventImage,
 				Duration:          event.Duration,
 				Local:             event.Local,
 				Current_Ocupation: event.Current_Ocupation,

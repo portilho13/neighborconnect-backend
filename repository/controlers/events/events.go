@@ -86,6 +86,50 @@ func GetAllEvents(dbPool *pgxpool.Pool) ([]models.Community_Event, error) {
 	return events, nil
 }
 
+func GetAllEventsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]models.Community_Event, error) {
+	var events []models.Community_Event
+
+	query := `SELECT id, name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation
+	FROM events.community_event WHERE manager_id = $1`
+
+	rows, err := dbPool.Query(context.Background(), query, manager_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var event models.Community_Event
+
+		err := rows.Scan(
+			&event.Id,
+			&event.Name,
+			&event.Percentage,
+			&event.Code,
+			&event.Capacity,
+			&event.Date_Time,
+			&event.Manager_Id,
+			&event.Event_Image,
+			&event.Duration,
+			&event.Local,
+			&event.Current_Ocupation,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, event)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return events, nil
+}
+
 func GetEventById(event_id int, dbPool *pgxpool.Pool) (models.Community_Event, error) {
 	var event models.Community_Event
 

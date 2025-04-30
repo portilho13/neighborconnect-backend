@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
+	repositoryControllersEvents "github.com/portilho13/neighborconnect-backend/repository/controlers/events"
 	repositoryControllersMarketplace "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 )
@@ -29,6 +30,7 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 	var apartmentsJson []controllers_models.Apartment
 	var usersJson []controllers_models.UserLogin
 	var listingsJson []controllers_models.ListingInfo
+	var eventsJson []controllers_models.EventInfo
 
 
 	for _, apartment := range apartments {
@@ -94,11 +96,37 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 
 	}
 
+	events, err := repositoryControllersEvents.GetAllEventsByManagerId(manager_id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Events", http.StatusInternalServerError)
+		return
+	}
+
+	for _, event := range events {
+		eventImage := ""
+		if event.Event_Image != nil {
+			eventImage = *event.Event_Image
+		}
+		eventsJson = append(eventsJson, controllers_models.EventInfo{
+			Id:                *event.Id,
+			Name:              event.Name,
+			Percentage:        event.Percentage,
+			Capacity:          event.Capacity,
+			Date_time:         event.Date_Time,
+			Manager_Id:        *event.Manager_Id,
+			Event_Image:       eventImage,
+			Duration:          event.Duration,
+			Local:             event.Local,
+			Current_Ocupation: event.Current_Ocupation,
+		})
+	}
+
 
 	dashboardInfo := controllers_models.ManagerDashboardInfo{
 		Apartments: apartmentsJson,
 		Users: usersJson,
 		Listings: listingsJson,
+		Events: eventsJson,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
