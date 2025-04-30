@@ -51,6 +51,10 @@ func GetAllApartments(dbPool *pgxpool.Pool) ([]models.Apartment, error) {
 		apartments = append(apartments, apartment)
 	}
 
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
 	return apartments, nil
 }
 
@@ -82,6 +86,10 @@ func GetAllApartmentsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]models
 		}
 
 		apartments = append(apartments, apartment)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
 	}
 
 	return apartments, nil

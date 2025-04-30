@@ -47,3 +47,46 @@ func GetUserByEmail(email string, dbPool *pgxpool.Pool) (models.User, error) {
 
 	return user, nil
 }
+
+
+func GetUsersByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.User, error) {
+	var users []models.User
+
+	query := `SELECT id, name, email, password, phone, apartment_id, profile_picture
+	FROM users.users WHERE apartment_id = $1`
+
+	rows, err := dbPool.Query(context.Background(), query, apartment_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+
+		err := rows.Scan(
+			&user.Id,
+			&user.Name,
+			&user.Email,
+			&user.Password,
+			&user.Phone,
+			&user.Apartment_id,
+			&user.Profile_Picture,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+
+	return users, nil
+}

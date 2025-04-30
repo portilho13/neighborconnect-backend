@@ -50,5 +50,9 @@ func GetAllCategories(dbPool *pgxpool.Pool) ([]models.Category, error) {
 		categories = append(categories, category)
 	}
 
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
 	return categories, nil
 }

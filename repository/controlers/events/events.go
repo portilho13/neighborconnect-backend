@@ -145,5 +145,9 @@ func GetEventsByUserId(user_id int, dbPool *pgxpool.Pool) ([]models.Community_Ev
 		users_community_events = append(users_community_events, event)
 	}
 
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
 	return users_community_events, nil
 }

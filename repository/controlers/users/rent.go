@@ -89,5 +89,9 @@ func GetRentByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.Rent
 
 	}
 
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
 	return rents, nil
 }
