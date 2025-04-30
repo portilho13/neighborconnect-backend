@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -26,6 +27,8 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 	}
 
 	var apartmentsJson []controllers_models.Apartment
+	var usersJson []controllers_models.UserLogin
+
 
 	for _, apartment := range apartments {
 		apartmentJson := controllers_models.Apartment{
@@ -37,10 +40,40 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 		}
 		apartmentsJson = append(apartmentsJson, apartmentJson)
 
+
+		users, err := repositoryControllers.GetUsersByApartmentId(apartmentJson.Id, dbPool)
+		
+		if err != nil {
+			http.Error(w, "Error Fetching Users", http.StatusInternalServerError)
+			return
+		}
+
+		for _, user := range users {
+			fmt.Println("User Apartment ID", *user.Apartment_id)
+			avatar := ""
+			if user.Profile_Picture != nil {
+				avatar = *user.Profile_Picture
+			}
+		
+			userJson := controllers_models.UserLogin{
+				Id:          user.Id,
+				Name:        user.Name,
+				Email:       user.Email,
+				Phone:       user.Phone,
+				ApartmentID: *user.Apartment_id,
+				Avatar:      avatar,
+			}
+
+
+			usersJson = append(usersJson, userJson)
+		}
+
 	}
+
 
 	dashboardInfo := controllers_models.ManagerDashboardInfo{
 		Apartments: apartmentsJson,
+		Users: usersJson,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
