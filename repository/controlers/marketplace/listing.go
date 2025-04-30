@@ -157,3 +157,47 @@ func UpdateListingStatus(status string, id int, dbPool *pgxpool.Pool) error {
 
 	return nil
 }
+
+func GetListingsBySellerId(seller_id int, dbPool *pgxpool.Pool) ([]models.Listing, error) {
+	query := `SELECT 
+	id, name, description, buy_now_price, start_price, created_at, expiration_time, status, seller_id, category_id
+	FROM marketplace.listing
+	WHERE seller_id = $1`
+
+	var listings []models.Listing
+
+	rows, err := dbPool.Query(context.Background(), query, seller_id)
+	if err != nil {
+		return nil, err
+	}
+	
+	defer rows.Close()
+
+	for rows.Next() {
+		var listing models.Listing
+		err := rows.Scan(
+			&listing.Id,
+			&listing.Name,
+			&listing.Description,
+			&listing.Buy_Now_Price,
+			&listing.Start_Price,
+			&listing.Created_At,
+			&listing.Expiration_Time,
+			&listing.Status,
+			&listing.Seller_Id,
+			&listing.Category_Id,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		listings = append(listings, listing)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return listings, nil
+}

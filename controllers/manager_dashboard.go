@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
+	repositoryControllersMarketplace "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 )
 
@@ -28,6 +28,7 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 
 	var apartmentsJson []controllers_models.Apartment
 	var usersJson []controllers_models.UserLogin
+	var listingsJson []controllers_models.ListingInfo
 
 
 	for _, apartment := range apartments {
@@ -49,7 +50,6 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 		}
 
 		for _, user := range users {
-			fmt.Println("User Apartment ID", *user.Apartment_id)
 			avatar := ""
 			if user.Profile_Picture != nil {
 				avatar = *user.Profile_Picture
@@ -66,6 +66,30 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 
 
 			usersJson = append(usersJson, userJson)
+
+			listings, err := repositoryControllersMarketplace.GetListingsBySellerId(user.Id, dbPool)
+			if err != nil {
+				http.Error(w, "Error Fetching Listings", http.StatusInternalServerError)
+				return
+			}
+
+			for _, listing := range listings {
+				listingJson := controllers_models.ListingInfo {
+					Id: *listing.Id,
+					Name: listing.Name,
+					Description: listing.Description,
+					Buy_Now_Price: listing.Buy_Now_Price,
+					Start_Price: listing.Start_Price,
+					Created_At: listing.Created_At,
+					Expiration_Time: listing.Expiration_Time,
+					Status: listing.Status,
+					Seller_Id: listing.Seller_Id,
+					Category_Id: listing.Category_Id,
+				}
+
+				listingsJson = append(listingsJson, listingJson)
+			}
+
 		}
 
 	}
@@ -74,6 +98,7 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 	dashboardInfo := controllers_models.ManagerDashboardInfo{
 		Apartments: apartmentsJson,
 		Users: usersJson,
+		Listings: listingsJson,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
