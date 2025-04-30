@@ -30,12 +30,21 @@ func LoginManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) 
 		return
 	}
 
-	session, _ := utils.Store.Get(r, "session-name")
+	session, _ := utils.Store.Get(r, "manager-session")
 	session.Values["manager_id"] = manager.Id
 	session.Values["email"] = manager.Email
 	session.Save(r, w)
 
+	managerJson := controllers_models.ManagerInfoJson {
+		Id: manager.Id,
+		Name: manager.Name,
+		Email: manager.Email,
+		Phone: manager.Phone,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Manager login successful"})
-}
+	if err := json.NewEncoder(w).Encode(managerJson); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}}

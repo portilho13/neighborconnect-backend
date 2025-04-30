@@ -53,3 +53,36 @@ func GetAllApartments(dbPool *pgxpool.Pool) ([]models.Apartment, error) {
 
 	return apartments, nil
 }
+
+func GetAllApartmentsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]models.Apartment, error) {
+	var apartments []models.Apartment
+
+	query := `SELECT id, n_bedrooms, floor, rent, manager_id FROM users.apartment WHERE manager_id = $1`
+
+	rows, err := dbPool.Query(context.Background(), query, manager_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var apartment models.Apartment
+
+		err := rows.Scan(
+			&apartment.Id,
+			&apartment.N_bedrooms,
+			&apartment.Floor,
+			&apartment.Rent,
+			&apartment.Manager_id,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		apartments = append(apartments, apartment)
+	}
+
+	return apartments, nil
+}

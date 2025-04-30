@@ -33,6 +33,7 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.AddUserToEventsApi(mux, dbPool)
 	routes.GetRentsApi(mux, dbPool)
 	routes.GetDashBoardInfoApi(mux, dbPool)
+	routes.LoginManagerApiRoute(mux, dbPool)
 
 	nextMux := middleware.Logging(middleware.CORS(mux))
 

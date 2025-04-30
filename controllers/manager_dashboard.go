@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
@@ -10,8 +11,15 @@ import (
 )
 
 func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	manager_id_str := r.URL.Query().Get("manager_id")
 
-	apartments, err := repositoryControllers.GetAllApartments(dbPool)
+	manager_id, err := strconv.Atoi(manager_id_str)
+	if err != nil {
+		http.Error(w, "Error Converting Manager Id", http.StatusInternalServerError)
+		return
+	}
+
+	apartments, err := repositoryControllers.GetAllApartmentsByManagerId(manager_id, dbPool)
 	if err != nil {
 		http.Error(w, "Error Fetching apartments", http.StatusInternalServerError)
 		return

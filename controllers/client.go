@@ -100,7 +100,7 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	// Create a session
-	session, _ := utils.Store.Get(r, "session-name")
+	session, _ := utils.Store.Get(r, "client-session")
 	session.Values["user_id"] = user.Id
 	session.Values["email"] = user.Email
 	session.Save(r, w)
