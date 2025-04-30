@@ -12,4 +12,5 @@ type Listing struct {
 	Expiration_Time time.Time
 	Status          string
 	Seller_Id       *int
+	Category_Id *int
 }
