@@ -7,8 +7,41 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
+	models "github.com/portilho13/neighborconnect-backend/repository/models/users"
 	"github.com/portilho13/neighborconnect-backend/utils"
 )
+
+func RegisterManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	var client controllers_models.UserJson
+	err := json.NewDecoder(r.Body).Decode(&client)
+	if err != nil {
+		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
+		return
+	}
+
+	encodedPassword, err := utils.GenerateFromPassword(client.Password, utils.DefaultArgon2Params)
+	if err != nil {
+		http.Error(w, "Error creating user", http.StatusBadGateway)
+		return
+	}
+
+	dbManager := models.Manager{
+		Name:     client.Name,
+		Email:    client.Email,
+		Password: encodedPassword,
+		Phone:    client.Phone,
+	}
+
+	err = repositoryControllers.CreateManager(dbManager, dbPool)
+	if err != nil {
+		http.Error(w, "Error creating user", http.StatusBadGateway)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Manager Registed !"})
+}
 
 func LoginManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	var creds controllers_models.Credentials
@@ -35,9 +68,9 @@ func LoginManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) 
 	session.Values["email"] = manager.Email
 	session.Save(r, w)
 
-	managerJson := controllers_models.ManagerInfoJson {
-		Id: manager.Id,
-		Name: manager.Name,
+	managerJson := controllers_models.ManagerInfoJson{
+		Id:    manager.Id,
+		Name:  manager.Name,
 		Email: manager.Email,
 		Phone: manager.Phone,
 	}
@@ -47,4 +80,5 @@ func LoginManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) 
 	if err := json.NewEncoder(w).Encode(managerJson); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
-	}}
+	}
+}

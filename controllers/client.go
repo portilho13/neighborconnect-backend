@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,7 +21,6 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	encodedPassword, err := utils.GenerateFromPassword(client.Password, utils.DefaultArgon2Params)
 	if err != nil {
-		log.Printf("Error: %v", err)
 		http.Error(w, "Error creating user", http.StatusBadGateway)
 		return
 	}
@@ -66,7 +64,6 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	err = repositoryControllers.CreateAccount(userAccount, dbPool)
 	if err != nil {
-		log.Printf("-%v", err)
 		http.Error(w, "Error creating account", http.StatusBadGateway)
 		return
 	}
