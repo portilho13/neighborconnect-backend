@@ -8,11 +8,12 @@ import (
 )
 
 func CreateApartment(apartment models.Apartment, dbPool *pgxpool.Pool) error {
-	query := `INSERT INTO users.apartment (n_bedrooms, floor, manager_id, status) VALUES ($1, $2, $3, $4)`
+	query := `INSERT INTO users.apartment (n_bedrooms, floor, rent, manager_id, status) VALUES ($1, $2, $3, $4, $5)`
 
 	_, err := dbPool.Exec(context.Background(), query,
 		apartment.N_bedrooms,
 		apartment.Floor,
+		apartment.Rent,
 		apartment.Manager_id,
 		apartment.Status,
 	)

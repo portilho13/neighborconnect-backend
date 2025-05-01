@@ -36,7 +36,7 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 		Buy_Now_Price:   listing.Buy_Now_Price,
 		Start_Price:     listing.Start_Price,
 		Created_At:      time.Now(),
-		Expiration_Time: listing.Expiration_Time,
+		Expiration_Date: listing.Expiration_Date,
 		Status:          "active", // When a listing is created status will be active by default
 		Seller_Id:       sellerID,
 	}
@@ -75,7 +75,7 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		Buy_Now_Price:   listing.Buy_Now_Price,
 		Start_Price:     listing.Start_Price,
 		Created_At:      listing.Created_At,
-		Expiration_Time: listing.Expiration_Time,
+		Expiration_Date: listing.Expiration_Date,
 		Status:          listing.Status,
 		Seller_Id:       listing.Seller_Id,
 	}
@@ -114,9 +114,9 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			Description:     listing.Description,
 			Buy_Now_Price:   listing.Buy_Now_Price,
 			Start_Price:     listing.Start_Price,
-			Current_bid: highestBid,
+			Current_bid:     highestBid,
 			Created_At:      listing.Created_At,
-			Expiration_Time: listing.Expiration_Time,
+			Expiration_Date: listing.Expiration_Date,
 			Status:          listing.Status,
 			Seller_Id:       listing.Seller_Id,
 		})

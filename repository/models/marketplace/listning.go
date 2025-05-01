@@ -9,8 +9,8 @@ type Listing struct {
 	Buy_Now_Price   int
 	Start_Price     int
 	Created_At      time.Time
-	Expiration_Time time.Time
+	Expiration_Date time.Time
 	Status          string
 	Seller_Id       *int
-	Category_Id *int
+	Category_Id     *int
 }

@@ -38,7 +38,7 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 
 	//Lazy check is listing is over
 	timeNow := time.Now()
-	if timeNow.After(listing.Expiration_Time) {
+	if timeNow.After(listing.Expiration_Date) {
 		if listing.Status == "active" {
 			err = utils.CloseListingBid(*listing.Id, dbPool)
 			if err != nil {

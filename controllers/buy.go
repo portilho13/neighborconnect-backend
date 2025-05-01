@@ -28,7 +28,7 @@ func CreateBuyOrder(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	timeNow := time.Now()
 
-	if timeNow.After(listing.Expiration_Time) {
+	if timeNow.After(listing.Expiration_Date) {
 		if listing.Status == "active" {
 			err = utils.CloseListingBuy(*listing.Id, buyJson.User_Id, dbPool)
 			if err != nil {

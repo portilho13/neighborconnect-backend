@@ -9,7 +9,7 @@ import (
 
 func CreateListing(listing models.Listing, dbPool *pgxpool.Pool) error {
 	query := `INSERT INTO marketplace.listing 
-	(name, description, buy_now_price, start_price, created_at, expiration_time, status, seller_id, category_id) 
+	(name, description, buy_now_price, start_price, created_at, expiration_date, status, seller_id, category_id) 
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	_, err := dbPool.Exec(context.Background(), query,
@@ -18,7 +18,7 @@ func CreateListing(listing models.Listing, dbPool *pgxpool.Pool) error {
 		listing.Buy_Now_Price,
 		listing.Start_Price,
 		listing.Created_At,
-		listing.Expiration_Time,
+		listing.Expiration_Date,
 		listing.Status,
 		listing.Seller_Id,
 		listing.Category_Id,
@@ -33,7 +33,7 @@ func CreateListing(listing models.Listing, dbPool *pgxpool.Pool) error {
 
 func GetListingById(id int, dbPool *pgxpool.Pool) (models.Listing, error) {
 	query := `SELECT 
-	id, name, description, buy_now_price, start_price, created_at, expiration_time, status, seller_id, category_id
+	id, name, description, buy_now_price, start_price, created_at, expiration_date, status, seller_id, category_id
 	FROM marketplace.listing
 	WHERE id = $1`
 
@@ -46,7 +46,7 @@ func GetListingById(id int, dbPool *pgxpool.Pool) (models.Listing, error) {
 		&listing.Buy_Now_Price,
 		&listing.Start_Price,
 		&listing.Created_At,
-		&listing.Expiration_Time,
+		&listing.Expiration_Date,
 		&listing.Status,
 		&listing.Seller_Id,
 		&listing.Category_Id,
@@ -61,7 +61,7 @@ func GetListingById(id int, dbPool *pgxpool.Pool) (models.Listing, error) {
 
 func GetAllListings(dbPool *pgxpool.Pool) ([]models.Listing, error) {
 	query := `SELECT 
-	id, name, description, buy_now_price, start_price, created_at, expiration_time, status, seller_id, category_id
+	id, name, description, buy_now_price, start_price, created_at, expiration_date, status, seller_id, category_id
 	FROM marketplace.listing`
 
 	rows, err := dbPool.Query(context.Background(), query)
@@ -83,7 +83,7 @@ func GetAllListings(dbPool *pgxpool.Pool) ([]models.Listing, error) {
 			&listing.Buy_Now_Price,
 			&listing.Start_Price,
 			&listing.Created_At,
-			&listing.Expiration_Time,
+			&listing.Expiration_Date,
 			&listing.Status,
 			&listing.Seller_Id,
 			&listing.Category_Id,
@@ -105,7 +105,7 @@ func GetAllListings(dbPool *pgxpool.Pool) ([]models.Listing, error) {
 
 func GetAllActiveListings(dbPool *pgxpool.Pool) ([]models.Listing, error) {
 	query := `SELECT 
-	id, name, description, buy_now_price, start_price, created_at, expiration_time, status, seller_id, category_id
+	id, name, description, buy_now_price, start_price, created_at, expiration_date, status, seller_id, category_id
 	FROM marketplace.listing WHERE status = 'active'`
 
 	rows, err := dbPool.Query(context.Background(), query)
@@ -127,7 +127,7 @@ func GetAllActiveListings(dbPool *pgxpool.Pool) ([]models.Listing, error) {
 			&listing.Buy_Now_Price,
 			&listing.Start_Price,
 			&listing.Created_At,
-			&listing.Expiration_Time,
+			&listing.Expiration_Date,
 			&listing.Status,
 			&listing.Seller_Id,
 			&listing.Category_Id,
@@ -160,7 +160,7 @@ func UpdateListingStatus(status string, id int, dbPool *pgxpool.Pool) error {
 
 func GetListingsBySellerId(seller_id int, dbPool *pgxpool.Pool) ([]models.Listing, error) {
 	query := `SELECT 
-	id, name, description, buy_now_price, start_price, created_at, expiration_time, status, seller_id, category_id
+	id, name, description, buy_now_price, start_price, created_at, expiration_date, status, seller_id, category_id
 	FROM marketplace.listing
 	WHERE seller_id = $1`
 
@@ -170,7 +170,7 @@ func GetListingsBySellerId(seller_id int, dbPool *pgxpool.Pool) ([]models.Listin
 	if err != nil {
 		return nil, err
 	}
-	
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -182,7 +182,7 @@ func GetListingsBySellerId(seller_id int, dbPool *pgxpool.Pool) ([]models.Listin
 			&listing.Buy_Now_Price,
 			&listing.Start_Price,
 			&listing.Created_At,
-			&listing.Expiration_Time,
+			&listing.Expiration_Date,
 			&listing.Status,
 			&listing.Seller_Id,
 			&listing.Category_Id,

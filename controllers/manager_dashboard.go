@@ -32,7 +32,6 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 	var listingsJson []controllers_models.ListingInfo
 	var eventsJson []controllers_models.EventInfo
 
-
 	for _, apartment := range apartments {
 		apartmentJson := controllers_models.Apartment{
 			Id:         *apartment.Id,
@@ -43,9 +42,8 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 		}
 		apartmentsJson = append(apartmentsJson, apartmentJson)
 
-
 		users, err := repositoryControllers.GetUsersByApartmentId(apartmentJson.Id, dbPool)
-		
+
 		if err != nil {
 			http.Error(w, "Error Fetching Users", http.StatusInternalServerError)
 			return
@@ -56,7 +54,7 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 			if user.Profile_Picture != nil {
 				avatar = *user.Profile_Picture
 			}
-		
+
 			userJson := controllers_models.UserLogin{
 				Id:          user.Id,
 				Name:        user.Name,
@@ -65,7 +63,6 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 				ApartmentID: *user.Apartment_id,
 				Avatar:      avatar,
 			}
-
 
 			usersJson = append(usersJson, userJson)
 
@@ -76,17 +73,17 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 			}
 
 			for _, listing := range listings {
-				listingJson := controllers_models.ListingInfo {
-					Id: *listing.Id,
-					Name: listing.Name,
-					Description: listing.Description,
-					Buy_Now_Price: listing.Buy_Now_Price,
-					Start_Price: listing.Start_Price,
-					Created_At: listing.Created_At,
-					Expiration_Time: listing.Expiration_Time,
-					Status: listing.Status,
-					Seller_Id: listing.Seller_Id,
-					Category_Id: listing.Category_Id,
+				listingJson := controllers_models.ListingInfo{
+					Id:              *listing.Id,
+					Name:            listing.Name,
+					Description:     listing.Description,
+					Buy_Now_Price:   listing.Buy_Now_Price,
+					Start_Price:     listing.Start_Price,
+					Created_At:      listing.Created_At,
+					Expiration_Date: listing.Expiration_Date,
+					Status:          listing.Status,
+					Seller_Id:       listing.Seller_Id,
+					Category_Id:     listing.Category_Id,
 				}
 
 				listingsJson = append(listingsJson, listingJson)
@@ -121,12 +118,11 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 		})
 	}
 
-
 	dashboardInfo := controllers_models.ManagerDashboardInfo{
 		Apartments: apartmentsJson,
-		Users: usersJson,
-		Listings: listingsJson,
-		Events: eventsJson,
+		Users:      usersJson,
+		Listings:   listingsJson,
+		Events:     eventsJson,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

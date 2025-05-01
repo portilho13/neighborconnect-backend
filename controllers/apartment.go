@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -31,6 +32,7 @@ func CreateApartment(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Poo
 	err = repositoryControllers.CreateApartment(apartment, dbPool)
 
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Error Creating Apartment", http.StatusInternalServerError)
 		return
 	}
