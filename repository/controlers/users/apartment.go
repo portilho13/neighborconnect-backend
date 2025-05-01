@@ -25,6 +25,31 @@ func CreateApartment(apartment models.Apartment, dbPool *pgxpool.Pool) error {
 	return nil
 }
 
+func UpdateApartmentStatus(apartment_id int, dbPool *pgxpool.Pool) error {
+	apartment, err := GetApartmentById(apartment_id, dbPool)
+	if err != nil {
+		return err
+	}
+
+	if apartment.Status == "occupied" {
+		return nil
+	}
+
+	query := `UPDATE users.apartment SET status = 'occupied' WHERE id = $1`
+
+	_, err = dbPool.Exec(context.Background(), query, apartment_id)
+	if err != nil {
+		return err
+	}
+
+	err = CreateRentForApartmentById(apartment_id, dbPool)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetAllApartments(dbPool *pgxpool.Pool) ([]models.Apartment, error) {
 	var apartments []models.Apartment
 

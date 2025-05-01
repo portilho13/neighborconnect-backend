@@ -22,7 +22,7 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	encodedPassword, err := utils.GenerateFromPassword(client.Password, utils.DefaultArgon2Params)
 	if err != nil {
-		http.Error(w, "Error creating user", http.StatusBadGateway)
+		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
 	}
 
@@ -46,7 +46,7 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	err = repositoryControllers.CreateUser(dbClient, dbPool)
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w, "Error creating user", http.StatusBadGateway)
+		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
 	}
 
@@ -54,7 +54,7 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	dbClient, err = repositoryControllers.GetUserByEmail(clientEmail, dbPool)
 	if err != nil {
-		http.Error(w, "Error creating user", http.StatusBadGateway)
+		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
 	}
 
@@ -67,7 +67,13 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	err = repositoryControllers.CreateAccount(userAccount, dbPool)
 	if err != nil {
-		http.Error(w, "Error creating account", http.StatusBadGateway)
+		http.Error(w, "Error creating account", http.StatusInternalServerError)
+		return
+	}
+
+	err = repositoryControllers.UpdateApartmentStatus(*apartmentID, dbPool)
+	if err != nil {
+		http.Error(w, "Error updating apartment status", http.StatusInternalServerError)
 		return
 	}
 
