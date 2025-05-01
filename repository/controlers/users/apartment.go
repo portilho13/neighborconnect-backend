@@ -21,6 +21,7 @@ func CreateApartment(apartment models.Apartment, dbPool *pgxpool.Pool) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -60,6 +61,65 @@ func GetAllApartments(dbPool *pgxpool.Pool) ([]models.Apartment, error) {
 	}
 
 	return apartments, nil
+}
+
+func GetAllOccupiedApartments(dbPool *pgxpool.Pool) ([]models.Apartment, error) {
+	var apartments []models.Apartment
+
+	query := `SELECT id, n_bedrooms, floor, rent, manager_id, status FROM users.apartment WHERE status = 'occupied'`
+
+	rows, err := dbPool.Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var apartment models.Apartment
+
+		err := rows.Scan(
+			&apartment.Id,
+			&apartment.N_bedrooms,
+			&apartment.Floor,
+			&apartment.Rent,
+			&apartment.Manager_id,
+			&apartment.Status,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		apartments = append(apartments, apartment)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return apartments, nil
+}
+
+func GetApartmentById(apartment_id int, dbPool *pgxpool.Pool) (models.Apartment, error) {
+	var apartment models.Apartment
+
+	query := `SELECT id, n_bedrooms, floor, rent, manager_id, status FROM users.apartment WHERE id = $1`
+
+	err := dbPool.QueryRow(context.Background(), query, apartment_id).Scan(
+		&apartment.Id,
+		&apartment.N_bedrooms,
+		&apartment.Floor,
+		&apartment.Rent,
+		&apartment.Manager_id,
+		&apartment.Status,
+	)
+
+	if err != nil {
+		return models.Apartment{}, nil
+	}
+
+	return apartment, nil
 }
 
 func GetAllApartmentsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]models.Apartment, error) {

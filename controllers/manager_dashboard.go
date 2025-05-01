@@ -39,6 +39,7 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 			Floor:      apartment.Floor,
 			Rent:       int(apartment.Rent),
 			Manager_Id: apartment.Manager_id,
+			Status:     apartment.Status,
 		}
 		apartmentsJson = append(apartmentsJson, apartmentJson)
 

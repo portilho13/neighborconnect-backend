@@ -16,8 +16,8 @@ func getLastDayOfMonth(year int, month time.Month) int {
 	return lastDay.Day()
 }
 
-func CreateRent(dbPool *pgxpool.Pool) error {
-	apartments, err := GetAllApartments(dbPool)
+func CreateRentForAllApartments(dbPool *pgxpool.Pool) error {
+	apartments, err := GetAllOccupiedApartments(dbPool) // Only occupied apartments should have rent
 	if err != nil {
 		return err
 	}
@@ -49,6 +49,41 @@ func CreateRent(dbPool *pgxpool.Pool) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func CreateRentForApartmentById(apartment_id int, dbPool *pgxpool.Pool) error {
+	apartment, err := GetApartmentById(apartment_id, dbPool)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+
+	month := now.Month()
+
+	year := now.Year()
+
+	query := `
+	INSERT INTO users.rent (month, year, base_amount, reduction, final_amount, apartment_id, status, due_day)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	`
+
+	_, err = dbPool.Exec(context.Background(), query,
+		month,
+		year,
+		apartment.Rent,
+		0,
+		apartment.Rent,
+		apartment.Id,
+		"unpaid",
+		getLastDayOfMonth(year, month),
+	)
+
+	if err != nil {
+		return err
 	}
 
 	return nil

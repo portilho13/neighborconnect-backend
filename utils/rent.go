@@ -42,7 +42,7 @@ func ConvertMonthToInt(month time.Month) int {
 func AutomateRents(dbPool *pgxpool.Pool) {
 	c := cron.New(cron.WithSeconds())
 	c.AddFunc("0 0 1 * *", func() { // Every month at 00:00
-		err := repositoryControllers.CreateRent(dbPool)
+		err := repositoryControllers.CreateRentForAllApartments(dbPool)
 		if err != nil {
 			log.Printf("Error creating rent %v", err)
 		} else {

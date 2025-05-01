@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -34,15 +35,17 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	}
 
 	dbClient := models.User{
-		Name:         client.Name,
-		Email:        client.Email,
-		Password:     encodedPassword,
-		Phone:        client.Phone,
-		Apartment_id: apartmentID,
+		Name:            client.Name,
+		Email:           client.Email,
+		Password:        encodedPassword,
+		Phone:           client.Phone,
+		Apartment_id:    apartmentID,
+		Profile_Picture: &client.Profile_Picture,
 	}
 
 	err = repositoryControllers.CreateUser(dbClient, dbPool)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Error creating user", http.StatusBadGateway)
 		return
 	}
