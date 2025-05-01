@@ -1,9 +1,10 @@
 package models
 
 type Apartment struct {
-	Id *int
+	Id         *int
 	N_bedrooms int
-	Floor int
-	Rent float64
+	Floor      int
+	Rent       float64
 	Manager_id int
+	Status     string
 }

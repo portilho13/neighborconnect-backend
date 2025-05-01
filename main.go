@@ -34,6 +34,7 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.GetRentsApi(mux, dbPool)
 	routes.GetDashBoardInfoApi(mux, dbPool)
 	routes.LoginManagerApiRoute(mux, dbPool)
+	routes.CreateApartmentApi(mux, dbPool)
 
 	nextMux := middleware.Logging(middleware.CORS(mux))
 

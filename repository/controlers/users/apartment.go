@@ -8,15 +8,17 @@ import (
 )
 
 func CreateApartment(apartment models.Apartment, dbPool *pgxpool.Pool) error {
-	query := `INSERT INTO users.apartment (n_bedrooms, floor, manager_id) VALUES ($1, $2, $3)`
+	query := `INSERT INTO users.apartment (n_bedrooms, floor, manager_id, status) VALUES ($1, $2, $3, $4)`
 
 	_, err := dbPool.Exec(context.Background(), query,
 		apartment.N_bedrooms,
 		apartment.Floor,
-		apartment.Manager_id)
+		apartment.Manager_id,
+		apartment.Status,
+	)
 
 	if err != nil {
-		return err // Return the actual error
+		return err
 	}
 	return nil
 }
@@ -24,7 +26,7 @@ func CreateApartment(apartment models.Apartment, dbPool *pgxpool.Pool) error {
 func GetAllApartments(dbPool *pgxpool.Pool) ([]models.Apartment, error) {
 	var apartments []models.Apartment
 
-	query := `SELECT id, n_bedrooms, floor, rent, manager_id FROM users.apartment`
+	query := `SELECT id, n_bedrooms, floor, rent, manager_id, status FROM users.apartment`
 
 	rows, err := dbPool.Query(context.Background(), query)
 	if err != nil {
@@ -42,6 +44,7 @@ func GetAllApartments(dbPool *pgxpool.Pool) ([]models.Apartment, error) {
 			&apartment.Floor,
 			&apartment.Rent,
 			&apartment.Manager_id,
+			&apartment.Status,
 		)
 
 		if err != nil {
@@ -61,7 +64,7 @@ func GetAllApartments(dbPool *pgxpool.Pool) ([]models.Apartment, error) {
 func GetAllApartmentsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]models.Apartment, error) {
 	var apartments []models.Apartment
 
-	query := `SELECT id, n_bedrooms, floor, rent, manager_id FROM users.apartment WHERE manager_id = $1`
+	query := `SELECT id, n_bedrooms, floor, rent, manager_id, status FROM users.apartment WHERE manager_id = $1`
 
 	rows, err := dbPool.Query(context.Background(), query, manager_id)
 	if err != nil {
@@ -79,6 +82,7 @@ func GetAllApartmentsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]models
 			&apartment.Floor,
 			&apartment.Rent,
 			&apartment.Manager_id,
+			&apartment.Status,
 		)
 
 		if err != nil {
