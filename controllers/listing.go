@@ -7,10 +7,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
@@ -36,11 +38,8 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 		return
 	}
 
-	// Sanitize string values by trimming surrounding quotes, if present
 	startPriceStr := strings.Trim(r.FormValue("start_price"), "\"")
 	startPrice, err := strconv.Atoi(startPriceStr)
-	fmt.Println("Raw:", r.FormValue("start_price"))
-	fmt.Println("Trimmed:", startPriceStr)
 	if err != nil {
 		http.Error(w, "Invalid start_price", http.StatusBadRequest)
 		return
@@ -56,16 +55,17 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	sellerIDStr := strings.Trim(r.FormValue("seller_id"), "\"")
 	sellerID, err := strconv.Atoi(sellerIDStr)
 	if err != nil {
-		sellerID = 0 // fallback for testing
+		http.Error(w, "Invalid seller id ", http.StatusBadRequest)
+		return
 	}
 
 	categoryIDStr := strings.Trim(r.FormValue("category_id"), "\"")
 	categoryID, err := strconv.Atoi(categoryIDStr)
 	if err != nil {
-		categoryID = 0 // fallback for testing
+		http.Error(w, "Invalid category id", http.StatusBadRequest)
+		return
 	}
 
-	// Save uploaded files
 	files := r.MultipartForm.File["images"]
 	for _, fileHeader := range files {
 		file, err := fileHeader.Open()
@@ -75,8 +75,11 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 		}
 		defer file.Close()
 
-		// You can change this path to wherever you want to store uploaded files
-		savePath := fmt.Sprintf("./uploads/%s", fileHeader.Filename)
+		filename := fileHeader.Filename
+		ext := filepath.Ext(filename)
+		newFilename := uuid.New().String() + ext
+		savePath := fmt.Sprintf("./uploads/listing/%s", newFilename)
+
 		dst, err := os.Create(savePath)
 		if err != nil {
 			log.Println("Error creating destination file:", err)
@@ -91,7 +94,6 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 		}
 	}
 
-	// Build and insert listing into DB
 	var sellerIDPtr *int
 	if sellerID != 0 {
 		sellerIDPtr = &sellerID
