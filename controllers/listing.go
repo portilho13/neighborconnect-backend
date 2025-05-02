@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,48 +19,56 @@ import (
 	"github.com/portilho13/neighborconnect-backend/utils"
 )
 
+
 func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
-	err := r.ParseMultipartForm(32 << 20)
+	err := r.ParseMultipartForm(32 << 20) // 32MB
 	if err != nil {
 		http.Error(w, "Failed to parse multipart form", http.StatusBadRequest)
 		return
 	}
 
-	// Extract form values
-	name := r.FormValue("name")
-	description := r.FormValue("description")
+	listingJSON := r.FormValue("listing")
+	if listingJSON == "" {
+		http.Error(w, "Missing listing data", http.StatusBadRequest)
+		return
+	}
 
-	buyNowPriceStr := strings.Trim(r.FormValue("buy_now_price"), "\"")
-	buyNowPrice, err := strconv.Atoi(buyNowPriceStr)
+	var listingData controllers_models.ListingCreation
+	if err := json.Unmarshal([]byte(listingJSON), &listingData); err != nil {
+		http.Error(w, "Invalid listing data format", http.StatusBadRequest)
+		return
+	}
+
+	// Convert string values to appropriate types
+	buyNowPrice, err := strconv.Atoi(listingData.Buy_Now_Price)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Invalid buy_now_price", http.StatusBadRequest)
 		return
 	}
 
-	startPriceStr := strings.Trim(r.FormValue("start_price"), "\"")
-	startPrice, err := strconv.Atoi(startPriceStr)
+	startPrice, err := strconv.Atoi(listingData.Start_Price)
 	if err != nil {
 		http.Error(w, "Invalid start_price", http.StatusBadRequest)
 		return
 	}
 
-	expirationTimeStr := strings.Trim(r.FormValue("expiration_time"), "\"")
-	expirationDate, err := time.Parse(time.RFC3339, expirationTimeStr)
+	// Parse the expiration time from string to time.Time
+	var expirationDate time.Time
+	if listingData.Expiration_Date != "" {
+		expirationDate, err = time.Parse(time.RFC3339, listingData.Expiration_Date)
+		if err != nil {
+			http.Error(w, "Invalid expiration_time format. Use RFC3339", http.StatusBadRequest)
+			return
+		}
+	}
+
+	sellerID, err := strconv.Atoi(listingData.Seller_Id)
 	if err != nil {
-		http.Error(w, "Invalid expiration_time format. Use RFC3339", http.StatusBadRequest)
+		http.Error(w, "Invalid seller id", http.StatusBadRequest)
 		return
 	}
 
-	sellerIDStr := strings.Trim(r.FormValue("seller_id"), "\"")
-	sellerID, err := strconv.Atoi(sellerIDStr)
-	if err != nil {
-		http.Error(w, "Invalid seller id ", http.StatusBadRequest)
-		return
-	}
-
-	categoryIDStr := strings.Trim(r.FormValue("category_id"), "\"")
-	categoryID, err := strconv.Atoi(categoryIDStr)
+	categoryID, err := strconv.Atoi(listingData.Category_Id)
 	if err != nil {
 		http.Error(w, "Invalid category id", http.StatusBadRequest)
 		return
@@ -73,8 +80,8 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	}
 
 	listingDB := models.Listing{
-		Name:            name,
-		Description:     description,
+		Name:            listingData.Name,
+		Description:     listingData.Description,
 		Buy_Now_Price:   buyNowPrice,
 		Start_Price:     startPrice,
 		Created_At:      time.Now(),
@@ -86,6 +93,7 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 
 	id, err := repositoryControllers.CreateListingReturningId(listingDB, dbPool)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Failed to create listing", http.StatusInternalServerError)
 		return
 	}
@@ -128,6 +136,7 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 
 		err = repositoryControllers.CreateListingPhotos(listing_photo, dbPool)
 		if err != nil {
+			fmt.Println(err)
 			http.Error(w, "Failed to create listing photos", http.StatusInternalServerError)
 			return
 		}
@@ -172,6 +181,7 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	}
 
 	listingJson := controllers_models.ListingInfo{
+		Id: *listing.Id,
 		Name:            listing.Name,
 		Description:     listing.Description,
 		Buy_Now_Price:   listing.Buy_Now_Price,
@@ -231,6 +241,7 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		}
 
 		listingsJson = append(listingsJson, controllers_models.ListingInfo{
+			Id: *listing.Id,
 			Name:            listing.Name,
 			Description:     listing.Description,
 			Buy_Now_Price:   listing.Buy_Now_Price,
