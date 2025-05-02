@@ -1,7 +1,12 @@
 package controllers_models
 
-type CategoryJson struct {
-	Id *int `json:"id"`
+type CategoryCreation struct {
 	Name string `json:"name"`
-	Url string `json:"url"`
+	Url  string `json:"url"`
+}
+
+type CategoryInfo struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Url  string `json:"url"`
 }

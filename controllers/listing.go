@@ -2,9 +2,13 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,44 +18,147 @@ import (
 )
 
 func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
-	var listing controllers_models.ListingCreation
-	err := json.NewDecoder(r.Body).Decode(&listing)
-
+	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
+		http.Error(w, "Failed to parse multipart form", http.StatusBadRequest)
 		return
 	}
 
-	var sellerID *int
+	// Extract form values
+	name := r.FormValue("name")
+	description := r.FormValue("description")
 
-	if listing.Seller_Id == 0 { // For testing purposes only
-		sellerID = nil
-	} else {
-		sellerID = &listing.Seller_Id
+	buyNowPriceStr := strings.Trim(r.FormValue("buy_now_price"), "\"")
+	buyNowPrice, err := strconv.Atoi(buyNowPriceStr)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Invalid buy_now_price", http.StatusBadRequest)
+		return
+	}
+
+	// Sanitize string values by trimming surrounding quotes, if present
+	startPriceStr := strings.Trim(r.FormValue("start_price"), "\"")
+	startPrice, err := strconv.Atoi(startPriceStr)
+	fmt.Println("Raw:", r.FormValue("start_price"))
+	fmt.Println("Trimmed:", startPriceStr)
+	if err != nil {
+		http.Error(w, "Invalid start_price", http.StatusBadRequest)
+		return
+	}
+
+	expirationTimeStr := strings.Trim(r.FormValue("expiration_time"), "\"")
+	expirationDate, err := time.Parse(time.RFC3339, expirationTimeStr)
+	if err != nil {
+		http.Error(w, "Invalid expiration_time format. Use RFC3339", http.StatusBadRequest)
+		return
+	}
+
+	sellerIDStr := strings.Trim(r.FormValue("seller_id"), "\"")
+	sellerID, err := strconv.Atoi(sellerIDStr)
+	if err != nil {
+		sellerID = 0 // fallback for testing
+	}
+
+	categoryIDStr := strings.Trim(r.FormValue("category_id"), "\"")
+	categoryID, err := strconv.Atoi(categoryIDStr)
+	if err != nil {
+		categoryID = 0 // fallback for testing
+	}
+
+	// Save uploaded files
+	files := r.MultipartForm.File["images"]
+	for _, fileHeader := range files {
+		file, err := fileHeader.Open()
+		if err != nil {
+			log.Println("Error opening uploaded file:", err)
+			continue
+		}
+		defer file.Close()
+
+		// You can change this path to wherever you want to store uploaded files
+		savePath := fmt.Sprintf("./uploads/%s", fileHeader.Filename)
+		dst, err := os.Create(savePath)
+		if err != nil {
+			log.Println("Error creating destination file:", err)
+			continue
+		}
+		defer dst.Close()
+
+		_, err = io.Copy(dst, file)
+		if err != nil {
+			log.Println("Error saving uploaded file:", err)
+			continue
+		}
+	}
+
+	// Build and insert listing into DB
+	var sellerIDPtr *int
+	if sellerID != 0 {
+		sellerIDPtr = &sellerID
 	}
 
 	listingDB := models.Listing{
-		Name:            listing.Name,
-		Description:     listing.Description,
-		Buy_Now_Price:   listing.Buy_Now_Price,
-		Start_Price:     listing.Start_Price,
+		Name:            name,
+		Description:     description,
+		Buy_Now_Price:   buyNowPrice,
+		Start_Price:     startPrice,
 		Created_At:      time.Now(),
-		Expiration_Date: listing.Expiration_Date,
-		Status:          "active", // When a listing is created status will be active by default
-		Seller_Id:       sellerID,
+		Expiration_Date: expirationDate,
+		Status:          "active",
+		Seller_Id:       sellerIDPtr,
+		Category_Id:     &categoryID,
 	}
 
 	err = repositoryControllers.CreateListing(listingDB, dbPool)
 	if err != nil {
-		log.Fatal(err)
-		http.Error(w, "Error creating item", http.StatusInternalServerError)
+		log.Println("Database error:", err)
+		http.Error(w, "Failed to create listing", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Listing Created !"})
+	json.NewEncoder(w).Encode(map[string]string{"message": "Listing Created!"})
 }
+
+// func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+// 	var listing controllers_models.ListingCreation
+// 	err := json.NewDecoder(r.Body).Decode(&listing)
+
+// 	if err != nil {
+// 		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	var sellerID *int
+
+// 	if listing.Seller_Id == 0 { // For testing purposes only
+// 		sellerID = nil
+// 	} else {
+// 		sellerID = &listing.Seller_Id
+// 	}
+
+// 	listingDB := models.Listing{
+// 		Name:            listing.Name,
+// 		Description:     listing.Description,
+// 		Buy_Now_Price:   listing.Buy_Now_Price,
+// 		Start_Price:     listing.Start_Price,
+// 		Created_At:      time.Now(),
+// 		Expiration_Date: listing.Expiration_Date,
+// 		Status:          "active", // When a listing is created status will be active by default
+// 		Seller_Id:       sellerID,
+// 	}
+
+// 	err = repositoryControllers.CreateListing(listingDB, dbPool)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 		http.Error(w, "Error creating item", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusOK)
+// 	json.NewEncoder(w).Encode(map[string]string{"message": "Listing Created !"})
+// }
 
 func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	query := r.URL.Query()

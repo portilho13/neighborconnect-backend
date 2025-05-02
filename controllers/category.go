@@ -17,7 +17,7 @@ func GetCategories(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 		return
 	}
 
-	var categoriesJson []controllers_models.CategoryJson
+	var categoriesJson []controllers_models.CategoryInfo
 
 	for _, category := range categories {
 		var url string
@@ -26,10 +26,10 @@ func GetCategories(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 		} else {
 			url = *category.Url
 		}
-		categoryJson := controllers_models.CategoryJson {
-			Id: category.Id,
+		categoryJson := controllers_models.CategoryInfo{
+			Id:   *category.Id,
 			Name: category.Name,
-			Url: url,
+			Url:  url,
 		}
 
 		categoriesJson = append(categoriesJson, categoryJson)
@@ -44,9 +44,9 @@ func GetCategories(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 }
 
 func CreateCategory(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
-	var category controllers_models.CategoryJson
+	var category controllers_models.CategoryCreation
 	err := json.NewDecoder(r.Body).Decode(&category)
-	
+
 	if err != nil {
 		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
 		return
@@ -54,6 +54,7 @@ func CreateCategory(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	categoryDb := models.Category{
 		Name: category.Name,
+		Url:  &category.Url,
 	}
 
 	err = repositoryControllers.CreateCategory(categoryDb, dbPool)
@@ -65,5 +66,5 @@ func CreateCategory(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Category Created !"})
-	
+
 }

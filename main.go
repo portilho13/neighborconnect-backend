@@ -37,6 +37,8 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.CreateApartmentApi(mux, dbPool)
 	routes.RegisterManagerApi(mux, dbPool)
 
+	routes.ServerFilesApi(mux)
+
 	nextMux := middleware.Logging(middleware.CORS(mux))
 
 	return nextMux
@@ -44,6 +46,11 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 
 func main() {
 	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = utils.CreateUploadsFolder()
 	if err != nil {
 		log.Fatal(err)
 	}

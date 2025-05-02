@@ -10,7 +10,7 @@ import (
 func CreateListing(listing models.Listing, dbPool *pgxpool.Pool) error {
 	query := `INSERT INTO marketplace.listing 
 	(name, description, buy_now_price, start_price, created_at, expiration_date, status, seller_id, category_id) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	_, err := dbPool.Exec(context.Background(), query,
 		listing.Name,
