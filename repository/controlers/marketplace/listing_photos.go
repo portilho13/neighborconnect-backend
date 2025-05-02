@@ -24,8 +24,8 @@ func CreateListingPhotos(item_photos models.Listing_Photos, dbPool *pgxpool.Pool
 	return nil
 }
 
-func GetListingPhotosById(id int, dbPool *pgxpool.Pool) ([]models.Listing_Photos, error) {
-	query := `SELECT id, url, listing_id FROM marketplace.listing_photos WHERE item_id = $1`
+func GetListingPhotosByListingId(id int, dbPool *pgxpool.Pool) ([]models.Listing_Photos, error) {
+	query := `SELECT id, url, listing_id FROM marketplace.listing_photos WHERE listing_id = $1`
 	rows, err := dbPool.Query(context.Background(), query, id)
 	if err != nil {
 		return nil, err

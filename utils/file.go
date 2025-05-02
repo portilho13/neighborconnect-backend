@@ -1,6 +1,11 @@
 package utils
 
-import "os"
+import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 func CreateUploadsFolder() error {
 	_, err := os.Stat("./uploads")
@@ -26,4 +31,14 @@ func CreateUploadsFolder() error {
 		}
 	}
 	return nil
+}
+
+func GetApiUrl() string {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return os.Getenv("API_IP")
+
 }

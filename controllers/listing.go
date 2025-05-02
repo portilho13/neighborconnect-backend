@@ -17,6 +17,7 @@ import (
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
+	"github.com/portilho13/neighborconnect-backend/utils"
 )
 
 func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
@@ -66,6 +67,29 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 		return
 	}
 
+	var sellerIDPtr *int
+	if sellerID != 0 {
+		sellerIDPtr = &sellerID
+	}
+
+	listingDB := models.Listing{
+		Name:            name,
+		Description:     description,
+		Buy_Now_Price:   buyNowPrice,
+		Start_Price:     startPrice,
+		Created_At:      time.Now(),
+		Expiration_Date: expirationDate,
+		Status:          "active",
+		Seller_Id:       sellerIDPtr,
+		Category_Id:     &categoryID,
+	}
+
+	id, err := repositoryControllers.CreateListingReturningId(listingDB, dbPool)
+	if err != nil {
+		http.Error(w, "Failed to create listing", http.StatusInternalServerError)
+		return
+	}
+
 	files := r.MultipartForm.File["images"]
 	for _, fileHeader := range files {
 		file, err := fileHeader.Open()
@@ -92,33 +116,25 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 			log.Println("Error saving uploaded file:", err)
 			continue
 		}
-	}
 
-	var sellerIDPtr *int
-	if sellerID != 0 {
-		sellerIDPtr = &sellerID
-	}
+		api_url := utils.GetApiUrl()
 
-	listingDB := models.Listing{
-		Name:            name,
-		Description:     description,
-		Buy_Now_Price:   buyNowPrice,
-		Start_Price:     startPrice,
-		Created_At:      time.Now(),
-		Expiration_Date: expirationDate,
-		Status:          "active",
-		Seller_Id:       sellerIDPtr,
-		Category_Id:     &categoryID,
-	}
+		api_path := fmt.Sprintf("http://%s/api/v1/uploads/listing/%s", api_url, newFilename)
 
-	err = repositoryControllers.CreateListing(listingDB, dbPool)
-	if err != nil {
-		log.Println("Database error:", err)
-		http.Error(w, "Failed to create listing", http.StatusInternalServerError)
-		return
+		listing_photo := models.Listing_Photos{
+			Url:        api_path,
+			Listing_Id: id,
+		}
+
+		err = repositoryControllers.CreateListingPhotos(listing_photo, dbPool)
+		if err != nil {
+			http.Error(w, "Failed to create listing photos", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Listing Created!"})
 }
 
@@ -138,6 +154,23 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		return
 	}
 
+	photos, err := repositoryControllers.GetListingPhotosByListingId(*listing.Id, dbPool)
+	if err != nil {
+		http.Error(w, "Failed fetching photo listings", http.StatusInternalServerError)
+		return
+	}
+
+	var listing_photos_json []controllers_models.Listing_Photos
+
+	for _, photo := range photos {
+		photo_json := controllers_models.Listing_Photos{
+			Id:  photo.Id,
+			Url: photo.Url,
+		}
+
+		listing_photos_json = append(listing_photos_json, photo_json)
+	}
+
 	listingJson := controllers_models.ListingInfo{
 		Name:            listing.Name,
 		Description:     listing.Description,
@@ -147,6 +180,7 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		Expiration_Date: listing.Expiration_Date,
 		Status:          listing.Status,
 		Seller_Id:       listing.Seller_Id,
+		Listing_Photos:  listing_photos_json,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -178,6 +212,24 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			http.Error(w, "Failed fetch listings", http.StatusInternalServerError)
 			return
 		}
+
+		photos, err := repositoryControllers.GetListingPhotosByListingId(*listing.Id, dbPool)
+		if err != nil {
+			http.Error(w, "Failed fetching photo listings", http.StatusInternalServerError)
+			return
+		}
+
+		var listing_photos_json []controllers_models.Listing_Photos
+
+		for _, photo := range photos {
+			photo_json := controllers_models.Listing_Photos{
+				Id:  photo.Id,
+				Url: photo.Url,
+			}
+
+			listing_photos_json = append(listing_photos_json, photo_json)
+		}
+
 		listingsJson = append(listingsJson, controllers_models.ListingInfo{
 			Name:            listing.Name,
 			Description:     listing.Description,
@@ -188,6 +240,7 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			Expiration_Date: listing.Expiration_Date,
 			Status:          listing.Status,
 			Seller_Id:       listing.Seller_Id,
+			Listing_Photos:  listing_photos_json,
 		})
 	}
 

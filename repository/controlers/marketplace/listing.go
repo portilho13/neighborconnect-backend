@@ -7,12 +7,13 @@ import (
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
 )
 
-func CreateListing(listing models.Listing, dbPool *pgxpool.Pool) error {
+func CreateListingReturningId(listing models.Listing, dbPool *pgxpool.Pool) (*int, error) {
 	query := `INSERT INTO marketplace.listing 
 	(name, description, buy_now_price, start_price, created_at, expiration_date, status, seller_id, category_id) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
 
-	_, err := dbPool.Exec(context.Background(), query,
+	var id int
+	err := dbPool.QueryRow(context.Background(), query,
 		listing.Name,
 		listing.Description,
 		listing.Buy_Now_Price,
@@ -22,13 +23,13 @@ func CreateListing(listing models.Listing, dbPool *pgxpool.Pool) error {
 		listing.Status,
 		listing.Seller_Id,
 		listing.Category_Id,
-	)
+	).Scan(&id)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &id, nil
 }
 
 func GetListingById(id int, dbPool *pgxpool.Pool) (models.Listing, error) {
