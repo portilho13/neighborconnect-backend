@@ -8,7 +8,7 @@ import (
 )
 
 func CreateBidApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
-	mux.HandleFunc("POST /api/v1/bid/create", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /api/v1/bid/", func(w http.ResponseWriter, r *http.Request) {
 		controllers.CreateBid(w, r, dbPool)
 	})
 }

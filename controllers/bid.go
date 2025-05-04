@@ -15,7 +15,7 @@ import (
 )
 
 func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
-	var bidJSON controllers_models.BidJson
+	var bidJSON controllers_models.BidCreation
 	err := json.NewDecoder(r.Body).Decode(&bidJSON)
 
 	if err != nil {

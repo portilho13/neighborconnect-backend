@@ -200,12 +200,29 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		Name: user.Name,
 	}
 
+	bids, err := repositoryControllers.GetBidByListningId(*listing.Id, dbPool)
+	var bidJson controllers_models.BidInfo
+	if len(bids) == 0 {
+		bidJson.Id = nil
+		bidJson.Bid_Ammount = listing.Start_Price
+		bidJson.User_Id = nil
+		bidJson.Listing_Id = *listing.Id
+	} else {
+		highestBid := bids[0]
+
+		bidJson.Id = highestBid.Id
+		bidJson.Bid_Ammount = highestBid.Bid_Ammount
+		bidJson.User_Id = highestBid.User_Id
+		bidJson.Listing_Id = *highestBid.Listing_Id
+	}
+
 	listingJson := controllers_models.ListingInfo{
 		Id:              *listing.Id,
 		Name:            listing.Name,
 		Description:     listing.Description,
 		Buy_Now_Price:   listing.Buy_Now_Price,
 		Start_Price:     listing.Start_Price,
+		Current_bid:     bidJson,
 		Created_At:      listing.Created_At,
 		Expiration_Date: listing.Expiration_Date,
 		Status:          listing.Status,
@@ -233,11 +250,19 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	for _, listing := range listings {
 		bids, err := repositoryControllers.GetBidByListningId(*listing.Id, dbPool)
-		var highestBid int
+		var bidJson controllers_models.BidInfo
 		if len(bids) == 0 {
-			highestBid = listing.Start_Price
+			bidJson.Id = nil
+			bidJson.Bid_Ammount = listing.Start_Price
+			bidJson.User_Id = nil
+			bidJson.Listing_Id = *listing.Id
 		} else {
-			highestBid = bids[0].Bid_Ammount
+			highestBid := bids[0]
+
+			bidJson.Id = highestBid.Id
+			bidJson.Bid_Ammount = highestBid.Bid_Ammount
+			bidJson.User_Id = highestBid.User_Id
+			bidJson.Listing_Id = *highestBid.Listing_Id
 		}
 		if err != nil {
 			http.Error(w, "Failed fetch listings", http.StatusInternalServerError)
@@ -290,7 +315,7 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			Description:     listing.Description,
 			Buy_Now_Price:   listing.Buy_Now_Price,
 			Start_Price:     listing.Start_Price,
-			Current_bid:     highestBid,
+			Current_bid:     bidJson,
 			Created_At:      listing.Created_At,
 			Expiration_Date: listing.Expiration_Date,
 			Status:          listing.Status,
