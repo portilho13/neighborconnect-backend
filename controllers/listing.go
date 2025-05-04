@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,7 +17,6 @@ import (
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
 	"github.com/portilho13/neighborconnect-backend/utils"
 )
-
 
 func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	err := r.ParseMultipartForm(32 << 20) // 32MB
@@ -93,7 +91,6 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 
 	id, err := repositoryControllers.CreateListingReturningId(listingDB, dbPool)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Failed to create listing", http.StatusInternalServerError)
 		return
 	}
@@ -102,8 +99,8 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	for _, fileHeader := range files {
 		file, err := fileHeader.Open()
 		if err != nil {
-			log.Println("Error opening uploaded file:", err)
-			continue
+			http.Error(w, "Failed to create listing", http.StatusInternalServerError)
+			return
 		}
 		defer file.Close()
 
@@ -114,15 +111,15 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 
 		dst, err := os.Create(savePath)
 		if err != nil {
-			log.Println("Error creating destination file:", err)
-			continue
+			http.Error(w, "Failed to create listing", http.StatusInternalServerError)
+			return
 		}
 		defer dst.Close()
 
 		_, err = io.Copy(dst, file)
 		if err != nil {
-			log.Println("Error saving uploaded file:", err)
-			continue
+			http.Error(w, "Failed to create listing", http.StatusInternalServerError)
+			return
 		}
 
 		api_url := utils.GetApiUrl()
@@ -136,7 +133,6 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 
 		err = repositoryControllers.CreateListingPhotos(listing_photo, dbPool)
 		if err != nil {
-			fmt.Println(err)
 			http.Error(w, "Failed to create listing photos", http.StatusInternalServerError)
 			return
 		}
@@ -181,7 +177,7 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	}
 
 	listingJson := controllers_models.ListingInfo{
-		Id: *listing.Id,
+		Id:              *listing.Id,
 		Name:            listing.Name,
 		Description:     listing.Description,
 		Buy_Now_Price:   listing.Buy_Now_Price,
@@ -241,7 +237,7 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		}
 
 		listingsJson = append(listingsJson, controllers_models.ListingInfo{
-			Id: *listing.Id,
+			Id:              *listing.Id,
 			Name:            listing.Name,
 			Description:     listing.Description,
 			Buy_Now_Price:   listing.Buy_Now_Price,

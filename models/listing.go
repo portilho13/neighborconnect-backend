@@ -3,13 +3,13 @@ package controllers_models
 import "time"
 
 type ListingCreation struct {
-	Name            string    `json:"name"`
-	Description     string    `json:"description"`
-	Buy_Now_Price   string       `json:"buy_now_price"`
-	Start_Price     string       `json:"start_price"`
-	Expiration_Date string `json:"Expiration_Date"`
-	Seller_Id       string       `json:"seller_id"`
-	Category_Id string `json:"category_id"`
+	Name            string `json:"name"`
+	Description     string `json:"description"`
+	Buy_Now_Price   string `json:"buy_now_price"`
+	Start_Price     string `json:"start_price"`
+	Expiration_Date string `json:"expiration_date"`
+	Seller_Id       string `json:"seller_id"`
+	Category_Id     string `json:"category_id"`
 }
 
 type Listing_Photos struct {
