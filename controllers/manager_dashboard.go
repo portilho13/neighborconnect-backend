@@ -10,6 +10,7 @@ import (
 	repositoryControllersEvents "github.com/portilho13/neighborconnect-backend/repository/controlers/events"
 	repositoryControllersMarketplace "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
+	repositoryControllersUsers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 )
 
 func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
@@ -74,6 +75,29 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 			}
 
 			for _, listing := range listings {
+				category, err := repositoryControllersMarketplace.GetCategoryById(*listing.Category_Id, dbPool)
+				if err != nil {
+					http.Error(w, "Error Fetching Category", http.StatusInternalServerError)
+					return
+				}
+
+				categoryJson := controllers_models.CategoryInfo{
+					Id:   *category.Id,
+					Name: category.Name,
+					Url:  *category.Url,
+				}
+
+				user, err := repositoryControllersUsers.GetUsersById(*listing.Seller_Id, dbPool)
+				if err != nil {
+					http.Error(w, "Error Fetching Seller Info", http.StatusInternalServerError)
+					return
+				}
+
+				userJson := controllers_models.SellerListingInfo{
+					Id:   user.Id,
+					Name: user.Name,
+				}
+
 				listingJson := controllers_models.ListingInfo{
 					Id:              *listing.Id,
 					Name:            listing.Name,
@@ -83,8 +107,8 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 					Created_At:      listing.Created_At,
 					Expiration_Date: listing.Expiration_Date,
 					Status:          listing.Status,
-					Seller_Id:       listing.Seller_Id,
-					Category_Id:     listing.Category_Id,
+					Seller:          userJson,
+					Category:        categoryJson,
 				}
 
 				listingsJson = append(listingsJson, listingJson)

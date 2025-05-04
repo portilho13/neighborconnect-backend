@@ -8,7 +8,7 @@ import (
 )
 
 func CreateListingApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
-	mux.HandleFunc("POST /api/v1/listing/create", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /api/v1/listing/", func(w http.ResponseWriter, r *http.Request) {
 		controllers.CreateListing(w, r, dbPool)
 	})
 }

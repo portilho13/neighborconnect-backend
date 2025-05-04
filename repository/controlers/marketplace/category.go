@@ -46,7 +46,6 @@ func GetAllCategories(dbPool *pgxpool.Pool) ([]models.Category, error) {
 			return nil, err
 		}
 
-
 		categories = append(categories, category)
 	}
 
@@ -55,4 +54,22 @@ func GetAllCategories(dbPool *pgxpool.Pool) ([]models.Category, error) {
 	}
 
 	return categories, nil
+}
+
+func GetCategoryById(category_id int, dbPool *pgxpool.Pool) (models.Category, error) {
+	var category models.Category
+
+	query := `SELECT id, name, url FROM marketplace.category WHERE id = $1`
+
+	err := dbPool.QueryRow(context.Background(), query, category_id).Scan(
+		&category.Id,
+		&category.Name,
+		&category.Url,
+	)
+
+	if err != nil {
+		return models.Category{}, nil
+	}
+
+	return category, nil
 }

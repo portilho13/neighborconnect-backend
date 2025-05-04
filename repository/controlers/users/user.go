@@ -18,7 +18,7 @@ func CreateUser(user models.User, dbPool *pgxpool.Pool) error {
 		user.Apartment_id,
 		user.Profile_Picture,
 	)
-	
+
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,6 @@ func GetUserByEmail(email string, dbPool *pgxpool.Pool) (models.User, error) {
 
 	return user, nil
 }
-
 
 func GetUsersByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.User, error) {
 	var users []models.User
@@ -82,11 +81,31 @@ func GetUsersByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.Use
 		users = append(users, user)
 	}
 
-
 	if rows.Err() != nil {
 		return nil, rows.Err()
 	}
 
-
 	return users, nil
+}
+
+func GetUsersById(user_id int, dbPool *pgxpool.Pool) (models.User, error) {
+	var user models.User
+
+	query := `SELECT id, name, email, password, phone, apartment_id, profile_picture FROM users.users WHERE id = $1`
+
+	err := dbPool.QueryRow(context.Background(), query, user_id).Scan(
+		&user.Id,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Phone,
+		&user.Apartment_id,
+		&user.Profile_Picture,
+	)
+
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
 }

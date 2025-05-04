@@ -1,6 +1,6 @@
 package controllers_models
 
-type UserJson struct {
+type UserCreation struct {
 	Name            string `json:"name"`
 	Email           string `json:"email"`
 	Password        string `json:"password"`
@@ -16,4 +16,9 @@ type UserLogin struct {
 	Phone       string `json:"phone"`
 	ApartmentID int    `json:"apartment_id"`
 	Avatar      string `json:"avatar"`
+}
+
+type SellerListingInfo struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 }

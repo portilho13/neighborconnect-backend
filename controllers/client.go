@@ -13,7 +13,7 @@ import (
 )
 
 func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
-	var client controllers_models.UserJson
+	var client controllers_models.UserCreation
 	err := json.NewDecoder(r.Body).Decode(&client)
 	if err != nil {
 		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)

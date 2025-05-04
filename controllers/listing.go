@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
+	repositoryControllersUsers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
 	"github.com/portilho13/neighborconnect-backend/utils"
 )
@@ -176,6 +177,29 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		listing_photos_json = append(listing_photos_json, photo_json)
 	}
 
+	category, err := repositoryControllers.GetCategoryById(*listing.Category_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Category", http.StatusInternalServerError)
+		return
+	}
+
+	categoryJson := controllers_models.CategoryInfo{
+		Id:   *category.Id,
+		Name: category.Name,
+		Url:  *category.Url,
+	}
+
+	user, err := repositoryControllersUsers.GetUsersById(*listing.Seller_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Seller Info", http.StatusInternalServerError)
+		return
+	}
+
+	userJson := controllers_models.SellerListingInfo{
+		Id:   user.Id,
+		Name: user.Name,
+	}
+
 	listingJson := controllers_models.ListingInfo{
 		Id:              *listing.Id,
 		Name:            listing.Name,
@@ -185,7 +209,8 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		Created_At:      listing.Created_At,
 		Expiration_Date: listing.Expiration_Date,
 		Status:          listing.Status,
-		Seller_Id:       listing.Seller_Id,
+		Seller:          userJson,
+		Category:        categoryJson,
 		Listing_Photos:  listing_photos_json,
 	}
 
@@ -236,6 +261,29 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			listing_photos_json = append(listing_photos_json, photo_json)
 		}
 
+		category, err := repositoryControllers.GetCategoryById(*listing.Category_Id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching Category", http.StatusInternalServerError)
+			return
+		}
+
+		categoryJson := controllers_models.CategoryInfo{
+			Id:   *category.Id,
+			Name: category.Name,
+			Url:  *category.Url,
+		}
+
+		user, err := repositoryControllersUsers.GetUsersById(*listing.Seller_Id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching Seller Info", http.StatusInternalServerError)
+			return
+		}
+
+		userJson := controllers_models.SellerListingInfo{
+			Id:   user.Id,
+			Name: user.Name,
+		}
+
 		listingsJson = append(listingsJson, controllers_models.ListingInfo{
 			Id:              *listing.Id,
 			Name:            listing.Name,
@@ -246,7 +294,8 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			Created_At:      listing.Created_At,
 			Expiration_Date: listing.Expiration_Date,
 			Status:          listing.Status,
-			Seller_Id:       listing.Seller_Id,
+			Seller:          userJson,
+			Category:        categoryJson,
 			Listing_Photos:  listing_photos_json,
 		})
 	}
