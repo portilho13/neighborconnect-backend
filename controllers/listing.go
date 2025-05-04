@@ -201,10 +201,16 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	}
 
 	bids, err := repositoryControllers.GetBidByListningId(*listing.Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Bids", http.StatusInternalServerError)
+		return
+	}
+
 	var bidJson controllers_models.BidInfo
 	if len(bids) == 0 {
 		bidJson.Id = nil
 		bidJson.Bid_Ammount = listing.Start_Price
+		bidJson.Bid_Time = nil
 		bidJson.User_Id = nil
 		bidJson.Listing_Id = *listing.Id
 	} else {
@@ -212,6 +218,7 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 		bidJson.Id = highestBid.Id
 		bidJson.Bid_Ammount = highestBid.Bid_Ammount
+		bidJson.Bid_Time = &highestBid.Bid_Time
 		bidJson.User_Id = highestBid.User_Id
 		bidJson.Listing_Id = *highestBid.Listing_Id
 	}
@@ -250,10 +257,17 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	for _, listing := range listings {
 		bids, err := repositoryControllers.GetBidByListningId(*listing.Id, dbPool)
+
+		if err != nil {
+			http.Error(w, "Failed fetching bids", http.StatusInternalServerError)
+			return
+		}
+
 		var bidJson controllers_models.BidInfo
 		if len(bids) == 0 {
 			bidJson.Id = nil
 			bidJson.Bid_Ammount = listing.Start_Price
+			bidJson.Bid_Time = nil
 			bidJson.User_Id = nil
 			bidJson.Listing_Id = *listing.Id
 		} else {
@@ -261,12 +275,9 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 			bidJson.Id = highestBid.Id
 			bidJson.Bid_Ammount = highestBid.Bid_Ammount
+			bidJson.Bid_Time = &highestBid.Bid_Time
 			bidJson.User_Id = highestBid.User_Id
 			bidJson.Listing_Id = *highestBid.Listing_Id
-		}
-		if err != nil {
-			http.Error(w, "Failed fetch listings", http.StatusInternalServerError)
-			return
 		}
 
 		photos, err := repositoryControllers.GetListingPhotosByListingId(*listing.Id, dbPool)

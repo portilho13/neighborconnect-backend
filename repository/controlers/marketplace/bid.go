@@ -7,20 +7,23 @@ import (
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
 )
 
-func CreateBid(bid models.Bid, dbPool *pgxpool.Pool) error {
-	query := `INSERT INTO marketplace.bid (bid_ammount, bid_time, users_id, listing_id) VALUES ($1, $2, $3, $4)`
-	_, err := dbPool.Exec(context.Background(), query,
+func CreateBidReturningId(bid models.Bid, dbPool *pgxpool.Pool) (int, error) {
+	query := `INSERT INTO marketplace.bid (bid_ammount, bid_time, users_id, listing_id) 
+	          VALUES ($1, $2, $3, $4) RETURNING id`
+
+	var bidID int
+	err := dbPool.QueryRow(context.Background(), query,
 		bid.Bid_Ammount,
 		bid.Bid_Time,
 		bid.User_Id,
 		bid.Listing_Id,
-	)
+	).Scan(&bidID)
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return bidID, nil
 }
 
 func GetBidByListningId(id int, dbPool *pgxpool.Pool) ([]models.Bid, error) {

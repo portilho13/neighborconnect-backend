@@ -10,7 +10,6 @@ import (
 	repositoryControllersEvents "github.com/portilho13/neighborconnect-backend/repository/controlers/events"
 	repositoryControllersMarketplace "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
-	repositoryControllersUsers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 )
 
 func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
@@ -87,7 +86,7 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 					Url:  *category.Url,
 				}
 
-				user, err := repositoryControllersUsers.GetUsersById(*listing.Seller_Id, dbPool)
+				user, err := repositoryControllers.GetUsersById(*listing.Seller_Id, dbPool)
 				if err != nil {
 					http.Error(w, "Error Fetching Seller Info", http.StatusInternalServerError)
 					return
@@ -98,12 +97,36 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 					Name: user.Name,
 				}
 
+				bids, err := repositoryControllersMarketplace.GetBidByListningId(*listing.Id, dbPool)
+				if err != nil {
+					http.Error(w, "Error Fetching Bids", http.StatusInternalServerError)
+					return
+				}
+
+				var bidJson controllers_models.BidInfo
+				if len(bids) == 0 {
+					bidJson.Id = nil
+					bidJson.Bid_Ammount = listing.Start_Price
+					bidJson.Bid_Time = nil
+					bidJson.User_Id = nil
+					bidJson.Listing_Id = *listing.Id
+				} else {
+					highestBid := bids[0]
+
+					bidJson.Id = highestBid.Id
+					bidJson.Bid_Ammount = highestBid.Bid_Ammount
+					bidJson.User_Id = highestBid.User_Id
+					bidJson.Bid_Time = &highestBid.Bid_Time
+					bidJson.Listing_Id = *highestBid.Listing_Id
+				}
+
 				listingJson := controllers_models.ListingInfo{
 					Id:              *listing.Id,
 					Name:            listing.Name,
 					Description:     listing.Description,
 					Buy_Now_Price:   listing.Buy_Now_Price,
 					Start_Price:     listing.Start_Price,
+					Current_bid:     bidJson,
 					Created_At:      listing.Created_At,
 					Expiration_Date: listing.Expiration_Date,
 					Status:          listing.Status,

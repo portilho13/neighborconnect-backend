@@ -1,12 +1,14 @@
 package ws
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/websocket"
 	"github.com/jackc/pgx/v5/pgxpool"
+	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 )
 
@@ -106,16 +108,39 @@ func ServeWs(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		log.Fatal(err)
 	}
 
+	var bidJson controllers_models.BidInfo
+	var bidJsonMarshed []byte
+
 	if len(bids) == 0 {
-		Hub.Broadcast <- BroadcastMessage{
-			ListingID: listingID,
-			Message:   []byte(strconv.Itoa(listing.Start_Price)),
+		bidJson.Id = nil
+		bidJson.Bid_Ammount = listing.Start_Price
+		bidJson.Bid_Time = nil
+		bidJson.User_Id = nil
+		bidJson.Listing_Id = listingIdInt
+
+		bidJsonMarshed, err = json.Marshal(bidJson)
+		if err != nil {
+			log.Fatal(err)
 		}
+
 	} else {
-		Hub.Broadcast <- BroadcastMessage{
-			ListingID: listingID,
-			Message:   []byte(strconv.Itoa(bids[0].Bid_Ammount)),
+		highestBid := bids[0]
+
+		bidJson.Id = highestBid.Id
+		bidJson.Bid_Ammount = highestBid.Bid_Ammount
+		bidJson.Bid_Time = &highestBid.Bid_Time
+		bidJson.User_Id = highestBid.User_Id
+		bidJson.Listing_Id = *highestBid.Listing_Id
+
+		bidJsonMarshed, err = json.Marshal(bidJson)
+		if err != nil {
+			log.Fatal(err)
 		}
+	}
+
+	Hub.Broadcast <- BroadcastMessage{
+		ListingID: listingID,
+		Message:   bidJsonMarshed,
 	}
 
 	go client.writePump()

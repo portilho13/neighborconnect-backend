@@ -66,22 +66,37 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	if bidJSON.Bid_Ammount > highestBid || len(bids) == 0 { // Only accept if bid ammount is bigger than highest bid
+		nowTime := time.Now()
 		bid := models.Bid{
 			Bid_Ammount: bidJSON.Bid_Ammount,
-			Bid_Time:    time.Now(),
+			Bid_Time:    nowTime,
 			User_Id:     bidJSON.User_Id,
 			Listing_Id:  bidJSON.Listing_Id,
 		}
 
-		err = repositoryControllers.CreateBid(bid, dbPool)
+		id, err := repositoryControllers.CreateBidReturningId(bid, dbPool)
 		if err != nil {
-			http.Error(w, "Error creating bid", http.StatusBadRequest)
+			http.Error(w, "Error creating bid", http.StatusInternalServerError)
+			return
+		}
+
+		bidJson := controllers_models.BidInfo{
+			Id:          &id,
+			Bid_Ammount: bidJSON.Bid_Ammount,
+			Bid_Time:    &nowTime,
+			User_Id:     bidJSON.User_Id,
+			Listing_Id:  *bidJSON.Listing_Id,
+		}
+
+		bidJsonMarshed, err := json.Marshal(bidJson)
+		if err != nil {
+			http.Error(w, "Error creating bid", http.StatusInternalServerError)
 			return
 		}
 
 		ws.Hub.Broadcast <- ws.BroadcastMessage{
 			ListingID: strconv.Itoa(*bidJSON.Listing_Id),
-			Message:   []byte(strconv.Itoa(bidJSON.Bid_Ammount)),
+			Message:   bidJsonMarshed,
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
