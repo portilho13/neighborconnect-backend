@@ -39,6 +39,7 @@ func GetRents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 			Apartment_Id: rent.Apartment_Id,
 			Status:       rent.Status,
 			Due_Day:      rent.Due_day,
+			Pay_Day: rent.Pay_Day,
 		}
 
 		rentsJson = append(rentsJson, rentJson)

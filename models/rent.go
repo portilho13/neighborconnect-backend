@@ -1,5 +1,7 @@
 package controllers_models
 
+import "time"
+
 type Rent struct {
 	Id           *int    `json:"id"`
 	Month        int     `json:"month"`
@@ -10,4 +12,5 @@ type Rent struct {
 	Apartment_Id *int    `json:"apartment_id"`
 	Status       string  `json:"status"`
 	Due_Day      int     `json:"due_day"`
+	Pay_Day time.Time `json:"pay_day"`
 }

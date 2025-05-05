@@ -92,7 +92,7 @@ func CreateRentForApartmentById(apartment_id int, dbPool *pgxpool.Pool) error {
 func GetRentByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.Rent, error) {
 	var rents []models.Rent
 
-	query := `SELECT id, month, year, base_amount, reduction, final_amount, apartment_id, status, due_day FROM users.rent WHERE apartment_id = $1 ORDER BY year DESC, month DESC`
+	query := `SELECT id, month, year, base_amount, reduction, final_amount, apartment_id, status, due_day, pay_day FROM users.rent WHERE apartment_id = $1 ORDER BY year DESC, month DESC`
 
 	rows, err := dbPool.Query(context.Background(), query, apartment_id)
 
@@ -114,6 +114,7 @@ func GetRentByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.Rent
 			&rent.Apartment_Id,
 			&rent.Status,
 			&rent.Due_day,
+			&rent.Pay_Day,
 		)
 
 		if err != nil {
