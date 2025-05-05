@@ -195,3 +195,13 @@ func GetEventsByUserId(user_id int, dbPool *pgxpool.Pool) ([]models.Community_Ev
 
 	return users_community_events, nil
 }
+
+func DeleteEventById(event_id int, dbPool *pgxpool.Pool) error {
+	query := `DELETE FROM events.community_events WHERE id = $1`
+
+	_, err := dbPool.Exec(context.Background(), query, event_id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
