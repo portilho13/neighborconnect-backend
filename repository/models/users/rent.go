@@ -12,5 +12,5 @@ type Rent struct {
 	Apartment_Id *int
 	Status       string
 	Due_day      int
-	Pay_Day time.Time
+	Pay_Day      *time.Time
 }

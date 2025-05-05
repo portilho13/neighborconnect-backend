@@ -29,6 +29,7 @@ func GetRents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	var rentsJson []controllers_models.Rent
 
 	for _, rent := range rents {
+
 		rentJson := controllers_models.Rent{
 			Id:           rent.Id,
 			Month:        rent.Month,
@@ -39,7 +40,7 @@ func GetRents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 			Apartment_Id: rent.Apartment_Id,
 			Status:       rent.Status,
 			Due_Day:      rent.Due_day,
-			Pay_Day: rent.Pay_Day,
+			Pay_Day:      rent.Pay_Day,
 		}
 
 		rentsJson = append(rentsJson, rentJson)
