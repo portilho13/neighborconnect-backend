@@ -33,6 +33,27 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 	var eventsJson []controllers_models.EventInfo
 
 	for _, apartment := range apartments {
+
+		rents, err := repositoryControllers.GetRentByApartmentId(*apartment.Id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching Apartment Rent", http.StatusInternalServerError)
+			return
+		}
+
+		last_rent := rents[0]
+
+		last_rent_json := controllers_models.Rent{
+			Id:           last_rent.Id,
+			Month:        last_rent.Month,
+			Year:         last_rent.Year,
+			Base_Amount:  last_rent.Base_Amount,
+			Reduction:    last_rent.Reduction,
+			Final_Amount: last_rent.Final_Amount,
+			Apartment_Id: last_rent.Apartment_Id,
+			Status:       last_rent.Status,
+			Due_Day:      last_rent.Due_day,
+		}
+
 		apartmentJson := controllers_models.Apartment{
 			Id:         *apartment.Id,
 			N_Bedrooms: apartment.N_bedrooms,
@@ -40,6 +61,7 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 			Rent:       int(apartment.Rent),
 			Manager_Id: apartment.Manager_id,
 			Status:     apartment.Status,
+			Last_Rent:  last_rent_json,
 		}
 		apartmentsJson = append(apartmentsJson, apartmentJson)
 
@@ -120,6 +142,21 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 					bidJson.Listing_Id = *highestBid.Listing_Id
 				}
 
+				listing_photos, err := repositoryControllersMarketplace.GetListingPhotosByListingId(*listing.Id, dbPool)
+				if err != nil {
+					http.Error(w, "Error Fetching Listing Photos", http.StatusInternalServerError)
+					return
+				}
+
+				var listingPhotosJson []controllers_models.Listing_Photos
+
+				for _, photo := range listing_photos {
+					listingPhotosJson = append(listingPhotosJson, controllers_models.Listing_Photos{
+						Id:  photo.Id,
+						Url: photo.Url,
+					})
+				}
+
 				listingJson := controllers_models.ListingInfo{
 					Id:              *listing.Id,
 					Name:            listing.Name,
@@ -132,6 +169,7 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 					Status:          listing.Status,
 					Seller:          userJson,
 					Category:        categoryJson,
+					Listing_Photos:  listingPhotosJson,
 				}
 
 				listingsJson = append(listingsJson, listingJson)
