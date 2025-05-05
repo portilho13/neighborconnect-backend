@@ -36,6 +36,7 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.LoginManagerApiRoute(mux, dbPool)
 	routes.CreateApartmentApi(mux, dbPool)
 	routes.RegisterManagerApi(mux, dbPool)
+	routes.CreateDepositApi(mux, dbPool)
 
 	routes.ServerFilesApi(mux)
 

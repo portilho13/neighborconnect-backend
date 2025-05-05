@@ -41,3 +41,14 @@ func GetAccountByUserId(id int, dbPool *pgxpool.Pool) (models.Account, error) {
 
 	return account, nil
 }
+
+func UpdateAccountBalance(account_id int, balance float64, dbPool *pgxpool.Pool) error {
+	query := `UPDATE users.account SET balance = $1 WHERE id = $2`
+
+	_, err := dbPool.Exec(context.Background(), query, balance, account_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
