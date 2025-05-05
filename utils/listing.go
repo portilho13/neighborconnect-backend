@@ -6,9 +6,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
+	"github.com/robfig/cron/v3"
 )
 
-func CloseListingBid(id int, dbPool *pgxpool.Pool) error {
+func CloseListing(id int, dbPool *pgxpool.Pool) error {
 	err := repositoryControllers.UpdateListingStatus("closed", id, dbPool)
 	if err != nil {
 		return err
@@ -26,6 +27,10 @@ func CloseListingBid(id int, dbPool *pgxpool.Pool) error {
 		return err
 	}
 
+	if len(bids) == 0 {
+		return nil // Nobody Bidded
+	}
+
 	highestBidder := bids[0]
 
 	transaction := models.Transaction{
@@ -35,6 +40,8 @@ func CloseListingBid(id int, dbPool *pgxpool.Pool) error {
 		Seller_Id:        sellerId,
 		Buyer_Id:         highestBidder.User_Id,
 		Listing_Id:       listing.Id,
+		Payment_Status:   "pending",
+		Payment_Due_time: time.Now().UTC().AddDate(0, 0, 5),
 	}
 
 	err = repositoryControllers.CreateTransaction(transaction, dbPool)
@@ -73,4 +80,36 @@ func CloseListingBuy(listingId int, buyerId int, dbPool *pgxpool.Pool) error {
 	}
 
 	return nil
+}
+
+func closeExpiredListings(dbPool *pgxpool.Pool) error {
+	listings, err := repositoryControllers.GetAllActiveListings(dbPool)
+	if err != nil {
+		return err
+	}
+
+	for _, listing := range listings {
+		if time.Now().After(listing.Expiration_Date) {
+			err = CloseListing(*listing.Id, dbPool)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func AutomateListingClosing(dbPool *pgxpool.Pool) {
+	c := cron.New(cron.WithSeconds())
+	c.AddFunc("@every 1s", func() { // Maybe change this ???
+		_ = closeExpiredListings(dbPool)
+
+	})
+
+	c.Start()
+
+	defer c.Stop()
+
+	select {}
 }

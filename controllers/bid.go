@@ -40,7 +40,7 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	timeNow := time.Now()
 	if timeNow.After(listing.Expiration_Date) {
 		if listing.Status == "active" {
-			err = utils.CloseListingBid(*listing.Id, dbPool)
+			err = utils.CloseListing(*listing.Id, dbPool)
 			if err != nil {
 				http.Error(w, "Invalid Listing", http.StatusBadRequest)
 				return

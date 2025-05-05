@@ -149,7 +149,7 @@ func GetAllActiveListings(dbPool *pgxpool.Pool) ([]models.Listing, error) {
 }
 
 func UpdateListingStatus(status string, id int, dbPool *pgxpool.Pool) error {
-	query := `UPDATE marketplace.listing SET status = $1 WHERE listing_id = $2`
+	query := `UPDATE marketplace.listing SET status = $1 WHERE id = $2`
 
 	_, err := dbPool.Exec(context.Background(), query, status, id)
 	if err != nil {

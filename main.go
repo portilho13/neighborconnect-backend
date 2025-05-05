@@ -77,6 +77,8 @@ func main() {
 
 	go utils.AutomateRents(dbPool)
 
+	go utils.AutomateListingClosing(dbPool)
+
 	mux := InitializeRoutes(dbPool)
 	go ws.Hub.Run()
 
