@@ -40,18 +40,23 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 			return
 		}
 
-		last_rent := rents[0]
+		var last_rent_json *controllers_models.Rent
+		if len(rents) > 0 {
+			last_rent := rents[0]
 
-		last_rent_json := controllers_models.Rent{
-			Id:           last_rent.Id,
-			Month:        last_rent.Month,
-			Year:         last_rent.Year,
-			Base_Amount:  last_rent.Base_Amount,
-			Reduction:    last_rent.Reduction,
-			Final_Amount: last_rent.Final_Amount,
-			Apartment_Id: last_rent.Apartment_Id,
-			Status:       last_rent.Status,
-			Due_Day:      last_rent.Due_day,
+			last_rent_json = &controllers_models.Rent{
+				Id:           last_rent.Id,
+				Month:        last_rent.Month,
+				Year:         last_rent.Year,
+				Base_Amount:  last_rent.Base_Amount,
+				Reduction:    last_rent.Reduction,
+				Final_Amount: last_rent.Final_Amount,
+				Apartment_Id: last_rent.Apartment_Id,
+				Status:       last_rent.Status,
+				Due_Day:      last_rent.Due_day,
+			}
+		} else {
+			last_rent_json = nil
 		}
 
 		apartmentJson := controllers_models.Apartment{

@@ -14,5 +14,5 @@ type Apartment struct {
 	Rent       int    `json:"rent"`
 	Manager_Id int    `json:"manager_id"`
 	Status     string `json:"status"`
-	Last_Rent  Rent   `json:"last_rent"`
+	Last_Rent  *Rent  `json:"last_rent"`
 }
