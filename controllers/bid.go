@@ -57,7 +57,7 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		return
 	}
 
-	var highestBid int
+	var highestBid float64
 
 	if len(bids) > 0 {
 		highestBid = bids[0].Bid_Ammount

@@ -9,9 +9,9 @@ import (
 
 func CreateManagerTransaction(manager_transaction models.Manager_Transaction, dbPool *pgxpool.Pool) error {
 	query := `INSERT INTO users.manager_transaction (type, amount, date, description, users_id, manager_id)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err := dbPool.Exec(context.Background(), query, 
+	_, err := dbPool.Exec(context.Background(), query,
 		manager_transaction.Type,
 		manager_transaction.Amount,
 		manager_transaction.Date,
@@ -27,7 +27,7 @@ func CreateManagerTransaction(manager_transaction models.Manager_Transaction, db
 	return nil
 }
 
-func GetManagerTransactionsByManagerId(manager_id int, dbPool *pgxpool.Pool)([]models.Manager_Transaction, error) {
+func GetManagerTransactionsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]models.Manager_Transaction, error) {
 	var manager_transactions []models.Manager_Transaction
 
 	query := `SELECT id, type, amount, date, description, users_id, manager_id FROM users.manager_transaction

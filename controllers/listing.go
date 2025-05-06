@@ -81,8 +81,8 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	listingDB := models.Listing{
 		Name:            listingData.Name,
 		Description:     listingData.Description,
-		Buy_Now_Price:   buyNowPrice,
-		Start_Price:     startPrice,
+		Buy_Now_Price:   float64(buyNowPrice),
+		Start_Price:     float64(startPrice),
 		Created_At:      time.Now(),
 		Expiration_Date: expirationDate,
 		Status:          "active",

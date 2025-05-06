@@ -6,8 +6,8 @@ type Listing struct {
 	Id              *int
 	Name            string
 	Description     string
-	Buy_Now_Price   int
-	Start_Price     int
+	Buy_Now_Price   float64
+	Start_Price     float64
 	Created_At      time.Time
 	Expiration_Date time.Time
 	Status          string
