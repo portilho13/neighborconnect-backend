@@ -131,3 +131,15 @@ func GetRentByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.Rent
 
 	return rents, nil
 }
+
+func UpdateRentReductionAndFinalAmount(rent_id int, new_reduction float64, new_amount float64, dbPool *pgxpool.Pool) error {
+	query := `UPDATE users.rent SET reduction = $1, final_amount = $2 WHERE id = $3`
+
+	_, err := dbPool.Exec(context.Background(), query, new_reduction, new_amount, rent_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}

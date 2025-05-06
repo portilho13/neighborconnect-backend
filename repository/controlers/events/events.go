@@ -236,7 +236,7 @@ func DeleteEventById(event_id int, dbPool *pgxpool.Pool) error {
 }
 
 func UpdateRewardedStatus(event_id int, users_id int, dbPool *pgxpool.Pool) error {
-	query := `UPDATE events.many_community_event_has_many_users SET isrewarded = true WHERE community_event_idd = $2 AND users_id = $3`
+	query := `UPDATE events.many_community_event_has_many_users SET isrewarded = true WHERE community_event_id = $1 AND users_id = $2`
 
 	_, err := dbPool.Exec(context.Background(), query, event_id, users_id)
 	if err != nil {
@@ -271,6 +271,8 @@ func GetAllUsersFromEventByEventId(event_id int, dbPool *pgxpool.Pool) ([]models
 		if err != nil {
 			return nil, err
 		}
+
+		users_events = append(users_events, users_event)
 
 	}
 

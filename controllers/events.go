@@ -198,10 +198,15 @@ func ConcludeEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	for _, user_id := range concludeEvent.Awarded_Users_Ids {
 		err = repositoryControllers.UpdateRewardedStatus(concludeEvent.Event_Id, user_id, dbPool)
 		if err != nil {
-			http.Error(w, "Error Updating Is Rewarded Status", http.StatusBadRequest)
+			fmt.Println(err)
+			http.Error(w, "Error Updating Is Rewarded Status", http.StatusInternalServerError)
 			return
 		}
 
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Event Concluded Sucessfully"})
 
 }
