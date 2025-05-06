@@ -72,6 +72,8 @@ func CloseListingBuy(listingId int, buyerId int, dbPool *pgxpool.Pool) error {
 		Seller_Id:        sellerId,
 		Buyer_Id:         &buyerId,
 		Listing_Id:       listing.Id,
+		Payment_Status:   "pending",
+		Payment_Due_time: time.Now().UTC().AddDate(0, 0, 5),
 	}
 
 	err = repositoryControllers.CreateTransaction(transaction, dbPool)
