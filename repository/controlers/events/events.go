@@ -28,11 +28,12 @@ func CreateCommunityEvent(event models.Community_Event, dbPool *pgxpool.Pool) er
 	return nil
 }
 
-func AddUserToCommunityEvent(userId int, eventId int, dbPool *pgxpool.Pool) error {
-	query := `INSERT INTO events.many_community_event_has_many_users (community_event_id, users_id) VALUES ($1, $2)`
+func AddUserToCommunityEvent(user_event models.User_Event, dbPool *pgxpool.Pool) error {
+	query := `INSERT INTO events.many_community_event_has_many_users (community_event_id, users_id, isrewarded) VALUES ($1, $2, $3)`
 	_, err := dbPool.Exec(context.Background(), query,
-		eventId,
-		userId,
+		user_event.Event_Id,
+		user_event.User_Id,
+		user_event.IsRewarded,
 	)
 
 	if err != nil {
@@ -130,6 +131,34 @@ func GetAllEventsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]models.Com
 	return events, nil
 }
 
+func GetEventByCodeReward(code string, dbPool *pgxpool.Pool) (*models.Community_Event, error) {
+	var event models.Community_Event
+
+	query := `SELECT id, name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation
+	FROM events.community_event WHERE code = $1`
+
+	err := dbPool.QueryRow(context.Background(), query, code).Scan(
+		&event.Id,
+		&event.Name,
+		&event.Percentage,
+		&event.Code,
+		&event.Capacity,
+		&event.Date_Time,
+		&event.Manager_Id,
+		&event.Event_Image,
+		&event.Duration,
+		&event.Local,
+		&event.Current_Ocupation,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &event, err
+
+}
+
 func GetEventById(event_id int, dbPool *pgxpool.Pool) (models.Community_Event, error) {
 	var event models.Community_Event
 
@@ -204,4 +233,50 @@ func DeleteEventById(event_id int, dbPool *pgxpool.Pool) error {
 		return err
 	}
 	return nil
+}
+
+func UpdateRewardedStatus(event_id int, users_id int, dbPool *pgxpool.Pool) error {
+	query := `UPDATE events.many_community_event_has_many_users SET isrewarded = true WHERE community_event_idd = $2 AND users_id = $3`
+
+	_, err := dbPool.Exec(context.Background(), query, event_id, users_id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetAllUsersFromEventByEventId(event_id int, dbPool *pgxpool.Pool) ([]models.User_Event, error) {
+	var users_events []models.User_Event
+
+	query := `SELECT community_event_id, users_id, isrewarded 
+	FROM events.many_community_event_has_many_users WHERE community_event_id = $1`
+
+	rows, err := dbPool.Query(context.Background(), query, event_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var users_event models.User_Event
+
+		err := rows.Scan(
+			&users_event.Event_Id,
+			&users_event.User_Id,
+			&users_event.IsRewarded,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return users_events, nil
 }
