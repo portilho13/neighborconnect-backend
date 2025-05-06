@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/portilho13/neighborconnect-backend/email"
 	"github.com/portilho13/neighborconnect-backend/middleware"
 	"github.com/portilho13/neighborconnect-backend/repository"
 	"github.com/portilho13/neighborconnect-backend/routes"
@@ -61,6 +62,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	e := email.Email{
+		To:      []string{"a27995@alunos.ipca.pt", "a27990@alunos.ipca.pt"},
+		Subject: "Ola",
+	}
+
+	err = email.SendEmail(e, "w", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Get database URL
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
