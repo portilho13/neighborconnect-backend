@@ -12,15 +12,15 @@ import (
 )
 
 func TestCreateApartment(t *testing.T) {
-	// Conectar ao banco de testes
+	// Connect to test database
 	dbPool, err := GetTestDBConnection()
 	require.NoError(t, err, "Failed to connect to test DB")
 	defer dbPool.Close()
 
-	// Limpar as tabelas relevantes
+	// Clean relevant tables
 	CleanDatabase(dbPool, "users.apartment, users.manager")
 
-	// Inserir um manager necessário para o apartamento
+	// Insert a manager required for the apartment
 	var managerId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.manager (name, email, password, phone) 
@@ -28,7 +28,7 @@ func TestCreateApartment(t *testing.T) {
 		 RETURNING id`).Scan(&managerId)
 	require.NoError(t, err, "Manager insertion should succeed")
 
-	// Criar o apartamento a ser testado
+	// Create apartment to be tested
 	apartment := models.Apartment{
 		N_bedrooms:  2,
 		Floor:       3,
@@ -37,21 +37,21 @@ func TestCreateApartment(t *testing.T) {
 		Status:      "available",
 	}
 
-	// Testar a criação do apartamento
+	// Test apartment creation
 	err = repository.CreateApartment(apartment, dbPool)
 	require.NoError(t, err, "CreateApartment should not return an error")
 }
 	
 func TestUpdateApartmentStatus(t *testing.T) {
-	// Conectar ao banco de dados de teste
+	// Connect to test database
 	dbPool, err := GetTestDBConnection()
 	require.NoError(t, err, "Failed to connect to test DB")
 	defer dbPool.Close()
 
-	// Limpar as tabelas necessárias
+	// Clean necessary tables
 	CleanDatabase(dbPool, "users.apartment, users.manager")
 
-	// Inserir um manager
+	// Insert a manager
 	var managerId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.manager (name, email, password, phone)
@@ -59,37 +59,35 @@ func TestUpdateApartmentStatus(t *testing.T) {
 		 RETURNING id`).Scan(&managerId)
 	require.NoError(t, err, "Manager insertion should succeed")
 
-	// Inserir um apartamento com status "available"
+	// Insert an apartment with "available" status
 	var apartmentId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.apartment (n_bedrooms, floor, rent, manager_id, status)
 		 VALUES (3, 5, 1800, $1, 'available') RETURNING id`, managerId).Scan(&apartmentId)
 	require.NoError(t, err, "Apartment insertion should succeed")
 
-	// Executar a função de atualização
+	// Execute update function
 	err = repository.UpdateApartmentStatus(apartmentId, dbPool)
 	require.NoError(t, err, "UpdateApartmentStatus should not return an error")
 
-	// Verificar se o status foi atualizado
+	// Verify status was updated
 	var updatedStatus string
 	err = dbPool.QueryRow(context.Background(),
 		`SELECT status FROM users.apartment WHERE id = $1`, apartmentId).Scan(&updatedStatus)
 	require.NoError(t, err, "Failed to fetch updated apartment")
 	assert.Equal(t, "occupied", updatedStatus, "Apartment status should be updated to 'occupied'")
-
 }
 
-
 func TestGetAllApartments(t *testing.T) {
-	// Conectar ao banco de dados de teste
+	// Connect to test database
 	dbPool, err := GetTestDBConnection()
 	require.NoError(t, err, "Failed to connect to test DB")
 	defer dbPool.Close()
 
-	// Limpar as tabelas necessárias
+	// Clean necessary tables
 	CleanDatabase(dbPool, "users.apartment, users.manager")
 
-	// Inserir um manager
+	// Insert a manager
 	var managerId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.manager (name, email, password, phone)
@@ -97,7 +95,7 @@ func TestGetAllApartments(t *testing.T) {
 		 RETURNING id`).Scan(&managerId)
 	require.NoError(t, err, "Manager insertion should succeed")
 
-	// Inserir múltiplos apartamentos
+	// Insert multiple apartments
 	expectedApartments := []models.Apartment{
 		{N_bedrooms: 2, Floor: 1, Rent: 1500, Manager_id: managerId, Status: "available"},
 		{N_bedrooms: 3, Floor: 2, Rent: 1800, Manager_id: managerId, Status: "occupied"},
@@ -117,12 +115,12 @@ func TestGetAllApartments(t *testing.T) {
 		require.NoError(t, err, "Apartment insertion should succeed")
 	}
 
-	// Chamar a função a ser testada
+	// Call function to test
 	retrievedApartments, err := repository.GetAllApartments(dbPool)
 	require.NoError(t, err, "GetAllApartments should not return an error")
 	assert.Equal(t, len(expectedApartments), len(retrievedApartments), "Number of apartments should match")
 
-	// Verificar os dados
+	// Verify data
 	for i, expected := range expectedApartments {
 		actual := retrievedApartments[i]
 		assert.Equal(t, expected.N_bedrooms, actual.N_bedrooms, "Bedrooms should match")
@@ -132,23 +130,24 @@ func TestGetAllApartments(t *testing.T) {
 		assert.Equal(t, expected.Status, actual.Status, "Status should match")
 	}
 }
+
 func TestGetAllOccupiedApartments(t *testing.T) {
-	// Conectar ao banco de dados de teste
+	// Connect to test database
 	dbPool, err := GetTestDBConnection()
 	require.NoError(t, err, "Failed to connect to test DB")
 	defer dbPool.Close()
 
-	// Limpar tabelas relevantes
+	// Clean relevant tables
 	CleanDatabase(dbPool, "users.apartment, users.manager")
 
-	// Inserir um manager para vincular aos apartamentos
+	// Insert a manager to link to apartments
 	var managerId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.manager (name, email, password, phone)
 		 VALUES ('Manager Jane', 'jane@example.com', 'securepass', '123123123') RETURNING id`).Scan(&managerId)
 	require.NoError(t, err)
 
-	// Inserir apartamentos com status variados
+	// Insert apartments with various statuses
 	apartments := []models.Apartment{
 		{N_bedrooms: 2, Floor: 1, Rent: 1000, Manager_id: managerId, Status: "occupied"},
 		{N_bedrooms: 1, Floor: 2, Rent: 900, Manager_id: managerId, Status: "available"},
@@ -174,12 +173,11 @@ func TestGetAllOccupiedApartments(t *testing.T) {
 		}
 	}
 
-	// Executar a função sob teste
+	// Execute function under test
 	retrieved, err := repository.GetAllOccupiedApartments(dbPool)
 	require.NoError(t, err, "GetAllOccupiedApartments should not return an error")
 	assert.Equal(t, len(expectedOccupied), len(retrieved), "Number of occupied apartments should match")
 }
-
 
 func TestGetApartmentById(t *testing.T) {
 	// Connect to the test database
@@ -206,7 +204,7 @@ func TestGetApartmentById(t *testing.T) {
 		Status:     "occupied",
 	}
 
-	// Inserir o apartamento no banco de dados
+	// Insert apartment into database
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.apartment (n_bedrooms, floor, rent, manager_id, status)
 		 VALUES ($1, $2, $3, $4, $5) RETURNING id`,
@@ -218,11 +216,11 @@ func TestGetApartmentById(t *testing.T) {
 	).Scan(&apartment.Id)
 	require.NoError(t, err)
 
-	// Buscar pelo ID
+	// Search by ID
 	retrieved, err := repository.GetApartmentById(*apartment.Id, dbPool)
 	require.NoError(t, err, "GetApartmentById should not return an error")
 
-	// Verificar se os dados estão corretos
+	// Verify data is correct
 	assert.Equal(t, apartment.Id, retrieved.Id)
 	assert.Equal(t, apartment.N_bedrooms, retrieved.N_bedrooms)
 	assert.Equal(t, apartment.Floor, retrieved.Floor)
@@ -231,18 +229,16 @@ func TestGetApartmentById(t *testing.T) {
 	assert.Equal(t, apartment.Status, retrieved.Status)
 }
 
-
-
 func TestGetAllApartmentsByManagerId(t *testing.T) {
-	// Conectar ao banco de dados de teste
+	// Connect to test database
 	dbPool, err := GetTestDBConnection()
 	require.NoError(t, err)
 	defer dbPool.Close()
 
-	// Limpar tabelas necessárias
+	// Clean necessary tables
 	CleanDatabase(dbPool, "users.apartment, users.manager")
 
-	// Inserir dois managers
+	// Insert two managers
 	var manager1Id, manager2Id int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.manager (name, email, password, phone) 
@@ -256,7 +252,7 @@ func TestGetAllApartmentsByManagerId(t *testing.T) {
 		 RETURNING id`).Scan(&manager2Id)
 	require.NoError(t, err)
 
-	// Inserir apartamentos para ambos os managers
+	// Insert apartments for both managers
 	apartments := []models.Apartment{
 		{N_bedrooms: 2, Floor: 1, Rent: 1000, Manager_id: manager1Id, Status: "available"},
 		{N_bedrooms: 3, Floor: 2, Rent: 1200, Manager_id: manager1Id, Status: "occupied"},
@@ -282,12 +278,12 @@ func TestGetAllApartmentsByManagerId(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, retrieved, 2, "Should return 1 listings for seller 2")
 
-		// Verificar se todos os listings retornados pertencem ao seller1Id
+		// Verify all returned listings belong to seller1Id
 		for _, apartment := range retrieved {
 			assert.Equal(t, manager1Id, *&apartment.Manager_id)
 		}
 
-		// Verificar detalhes dos listings
+		// Verify listing details
 		for _, expected := range expectedByManager[manager1Id] {
 			found := false
 			for _, actual := range retrieved {
@@ -303,9 +299,8 @@ func TestGetAllApartmentsByManagerId(t *testing.T) {
 			}
 			assert.True(t, found, "Listing with ID %d not found in results", expected.Id)
 		}
-	 })
+	})
 	
-
 	t.Run("get apartments for manager 2", func(t *testing.T) {
 		retrieved, err := repository.GetAllApartmentsByManagerId(manager2Id, dbPool)
 		require.NoError(t, err)
