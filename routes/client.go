@@ -17,3 +17,9 @@ func LoginClientApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.LoginClient(w, r, dbPool)
 	})
 }
+
+func LogoutClientApiRoute(mux *http.ServeMux) {
+	mux.HandleFunc("POST /api/v1/client/logout", func(w http.ResponseWriter, r *http.Request) {
+		controllers.LogoutHandlerUser(w, r)
+	})
+}

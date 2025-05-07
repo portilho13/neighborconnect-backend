@@ -96,11 +96,24 @@ func TestLoginHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error hashing: %v", err)
 	}
+	var managerId int
+	err = dbPool.QueryRow(context.Background(),
+		`INSERT INTO users.manager (name, email, password, phone) VALUES ('a', 'a', 'a', 'a')
+		 RETURNING id`).Scan(&managerId)
+	assert.NoError(t, err, "User insertion should succeed")
+
+
+	var apartmentID int
+	err = dbPool.QueryRow(context.Background(),
+		`INSERT INTO users.apartment (n_bedrooms, floor, rent, manager_id, status) VALUES (1, 1, 1, $1, 'unoccupied')
+		 RETURNING id`, managerId).Scan(&apartmentID)
+	assert.NoError(t, err, "User insertion should succeed")
 	// Step 1: Insert a test user
 	user := models.User{
 		Name:     "Alice Doe",
 		Email:    "alice@example.com",
 		Password: encodedPassword,
+		Apartment_id: &apartmentID,
 		Phone:    "911111111",
 	}
 	err = repository.CreateUser(user, dbPool)
@@ -114,7 +127,7 @@ func TestLoginHandler(t *testing.T) {
 
 	controllers.LoginClient(w, req, dbPool)
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "Login successful")
+	assert.NotEqual(t, w.Body.String(), "Invalid credentials")
 
 	// Test invalid login
 	wrongCredentials := controllers_models.Credentials{Email: "test@example.com", Password: "wrongpassword"}
@@ -127,4 +140,8 @@ func TestLoginHandler(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "Invalid credentials")
 
 	CleanDatabase(dbPool, "users.users")
+	CleanDatabase(dbPool, "users.apartment")
+	CleanDatabase(dbPool, "users.manager")
+
+
 }

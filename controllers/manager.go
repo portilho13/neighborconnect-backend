@@ -82,3 +82,16 @@ func LoginManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) 
 		return
 	}
 }
+
+
+func LogoutHandlerManager(w http.ResponseWriter, r *http.Request) {
+    session, _ := utils.Store.Get(r, "session")
+
+    delete(session.Values, "user_id")
+    delete(session.Values, "email")
+
+    session.Options.MaxAge = -1
+
+    session.Save(r, w)
+
+}

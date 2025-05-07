@@ -129,3 +129,17 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(userJson)
 }
+
+
+func LogoutHandlerUser(w http.ResponseWriter, r *http.Request) {
+    session, _ := utils.Store.Get(r, "client-session")
+
+    delete(session.Values, "user_id")
+    delete(session.Values, "email")
+
+    // Invalidate the session cookie
+    session.Options.MaxAge = -1
+
+    session.Save(r, w)
+
+}
