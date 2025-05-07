@@ -11,8 +11,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/portilho13/neighborconnect-backend/email"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/events"
+	repositoryControllersUsers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/events"
 	"github.com/portilho13/neighborconnect-backend/utils"
 )
@@ -82,6 +84,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		Duration:          eventData.Duration,
 		Local:             eventData.Local,
 		Current_Ocupation: 0,
+		Status:            "active",
 	}
 
 	err = repositoryControllers.CreateCommunityEvent(event, dbPool)
@@ -170,9 +173,10 @@ func AddUserToEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Poo
 	}
 
 	user_event := models.User_Event{
-		User_Id:    joinEventJson.User_Id,
-		Event_Id:   joinEventJson.Community_Event_Id,
-		IsRewarded: false,
+		User_Id:       joinEventJson.User_Id,
+		Event_Id:      joinEventJson.Community_Event_Id,
+		IsRewarded:    false,
+		ClaimedReward: false,
 	}
 
 	err = repositoryControllers.AddUserToCommunityEvent(user_event, dbPool)
@@ -198,11 +202,32 @@ func ConcludeEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	for _, user_id := range concludeEvent.Awarded_Users_Ids {
 		err = repositoryControllers.UpdateRewardedStatus(concludeEvent.Event_Id, user_id, dbPool)
 		if err != nil {
-			fmt.Println(err)
 			http.Error(w, "Error Updating Is Rewarded Status", http.StatusInternalServerError)
 			return
 		}
 
+		user, err := repositoryControllersUsers.GetUsersById(user_id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching user", http.StatusInternalServerError)
+			return
+		}
+
+		event, err := repositoryControllers.GetEventById(concludeEvent.Event_Id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching Event", http.StatusInternalServerError)
+			return
+		}
+
+		email_struct := email.Email{
+			To:      []string{user.Email},
+			Subject: "Reward for Community Event",
+		}
+
+		err = email.SendEmail(email_struct, "reward", event)
+		if err != nil {
+			http.Error(w, "Error Sending Event Email", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

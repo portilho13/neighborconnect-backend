@@ -14,4 +14,5 @@ type Community_Event struct {
 	Duration          time.Duration
 	Local             string
 	Current_Ocupation int
+	Status            string
 }

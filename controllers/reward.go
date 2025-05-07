@@ -37,9 +37,17 @@ func Reward(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		http.Error(w, "Error Fetching users_events", http.StatusInternalServerError)
 		return
 	}
+	var foundUser bool = false
 	for _, user_event := range users_event {
+
 		if user_event.User_Id == reward.User_Id && user_event.Event_Id == *event.Id && user_event.IsRewarded {
 
+			foundUser = true
+
+			if user_event.ClaimedReward {
+				http.Error(w, "Reward Already Claimed", http.StatusInternalServerError)
+				return
+			}
 			user, err := repositoryControllersUsers.GetUsersById(user_event.User_Id, dbPool)
 			if err != nil {
 				http.Error(w, "Error Fetching User", http.StatusInternalServerError)
@@ -68,10 +76,18 @@ func Reward(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 				http.Error(w, "Failed Appling Reduction", http.StatusInternalServerError)
 				return
 			}
-		} else {
-			http.Error(w, "Error Applying Discount", http.StatusInternalServerError)
-			return
+
+			err = repositoryControllers.UpdateRewardedStatus(*event.Id, user_event.User_Id, dbPool)
+			if err != nil {
+				http.Error(w, "Error Updating Reward Status", http.StatusInternalServerError)
+				return
+			}
 		}
+	}
+
+	if !foundUser {
+		http.Error(w, "Error Applying Discount", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
