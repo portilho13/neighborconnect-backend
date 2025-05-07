@@ -42,6 +42,7 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.PayTransactionApi(mux, dbPool)
 	routes.ConcludeEventApiRoute(mux, dbPool)
 	routes.RewardEventApiRoute(mux, dbPool)
+	routes.PayRentApi(mux, dbPool)
 
 	routes.ServerFilesApi(mux)
 

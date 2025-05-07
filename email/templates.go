@@ -158,7 +158,7 @@ func CreateRewardEmailTemplate(event models.Community_Event) string {
 						</ol>
 					</div>
 					
-					<p class="expiry">This code expires in: 30 days</p>
+					<p class="expiry">This code expires in: 5 days</p>
 					
 					<a href="#" class="button">Redeem Now</a>
 					

@@ -12,3 +12,9 @@ func GetRentsApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.GetRents(w, r, dbPool)
 	})
 }
+
+func PayRentApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("POST /api/v1/rent", func(w http.ResponseWriter, r *http.Request) {
+		controllers.PayRent(w, r, dbPool)
+	})
+}
