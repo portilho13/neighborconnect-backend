@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/portilho13/neighborconnect-backend/email"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	repositoryControllersUsers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
@@ -75,6 +77,23 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		return
 	}
 
+	user, err := repositoryControllersUsers.GetUsersById(payJson.User_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Getting User Id", http.StatusInternalServerError)
+		return
+	}
+
+	email_struct := email.Email{
+		To:      []string{user.Email},
+		Subject: "Order Receipt",
+	}
+
+	err = email.SendEmail(email_struct, "order receipt", transaction)
+	if err != nil {
+		http.Error(w, "Error Sending Email", http.StatusInternalServerError)
+		return
+	}
+
 	feesAmount := transaction.Final_Price * FEES
 
 	manager_id, err := utils.GetManagerIdByUserId(*transaction.Seller_Id, dbPool)
@@ -101,4 +120,47 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Pay Concluded Sucessfully !"})
+}
+
+func GetAllTransactions(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	query := r.URL.Query()
+	idStr := query.Get("user_id")
+
+	user_id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
+
+	transactions, err := repositoryControllers.GetTransactionsByBuyerId(user_id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching User", http.StatusInternalServerError)
+		return
+	}
+
+	var transactionsJson []controllers_models.TransactionJson
+
+	for _, transaction := range transactions {
+		transactionJson := controllers_models.TransactionJson{
+			Id:               transaction.Id,
+			Final_Price:      transaction.Final_Price,
+			Transaction_Time: transaction.Transaction_Time,
+			Transaction_Type: transaction.Transaction_Type,
+			Seller_Id:        transaction.Seller_Id,
+			Buyer_Id:         transaction.Buyer_Id,
+			Listing_Id:       transaction.Listing_Id,
+			Payment_Status:   transaction.Payment_Status,
+			Payment_Due_time: transaction.Payment_Due_time,
+		}
+
+		transactionsJson = append(transactionsJson, transactionJson)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(transactionsJson); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+
 }

@@ -4,7 +4,9 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/portilho13/neighborconnect-backend/email"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
+	repositoryControllersUsers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
 	"github.com/robfig/cron/v3"
 )
@@ -44,7 +46,24 @@ func CloseListing(id int, dbPool *pgxpool.Pool) error {
 		Payment_Due_time: time.Now().UTC().AddDate(0, 0, 5),
 	}
 
-	err = repositoryControllers.CreateTransaction(transaction, dbPool)
+	transaction_id, err := repositoryControllers.CreateTransaction(transaction, dbPool)
+	if err != nil {
+		return err
+	}
+
+	user, err := repositoryControllersUsers.GetUsersById(*highestBidder.User_Id, dbPool)
+	if err != nil {
+		return err
+	}
+
+	listing.Id = &transaction_id // Add Transaction Id
+
+	email_struct := email.Email{
+		To:      []string{user.Email},
+		Subject: "Order Confirmation",
+	}
+
+	err = email.SendEmail(email_struct, "order confirmation", transaction)
 	if err != nil {
 		return err
 	}
@@ -76,7 +95,24 @@ func CloseListingBuy(listingId int, buyerId int, dbPool *pgxpool.Pool) error {
 		Payment_Due_time: time.Now().UTC().AddDate(0, 0, 5),
 	}
 
-	err = repositoryControllers.CreateTransaction(transaction, dbPool)
+	transaction_id, err := repositoryControllers.CreateTransaction(transaction, dbPool)
+	if err != nil {
+		return err
+	}
+
+	user, err := repositoryControllersUsers.GetUsersById(buyerId, dbPool)
+	if err != nil {
+		return err
+	}
+
+	email_struct := email.Email{
+		To:      []string{user.Email},
+		Subject: "Order Confirmation",
+	}
+
+	transaction.Id = &transaction_id // Add Transaction Id
+
+	err = email.SendEmail(email_struct, "order confirmation", transaction)
 	if err != nil {
 		return err
 	}

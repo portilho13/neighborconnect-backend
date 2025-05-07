@@ -3,10 +3,11 @@ package email
 import (
 	"fmt"
 
-	models "github.com/portilho13/neighborconnect-backend/repository/models/events"
+	modelsEvent "github.com/portilho13/neighborconnect-backend/repository/models/events"
+	modelsMarketplace "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
 )
 
-func CreateRewardEmailTemplate(event models.Community_Event) string {
+func CreateRewardEmailTemplate(event modelsEvent.Community_Event) string {
 	return fmt.Sprintf(`<!DOCTYPE html>
 		<html lang="en">
 		<head>
@@ -178,3 +179,97 @@ func CreateRewardEmailTemplate(event models.Community_Event) string {
 		</html>`, event.Code,
 	)
 }
+
+func CreateTransactionReceiptTemplate(t modelsMarketplace.Transaction) string {
+	// Handle potential nil pointers
+	id := t.Id
+	sellerId := t.Seller_Id
+	buyerId := t.Buyer_Id
+	listingId := t.Listing_Id
+
+	// Format dates
+	transactionDate := t.Transaction_Time.Format("02 Jan 2006 15:04")
+	dueDate := t.Payment_Due_time.Format("02 Jan 2006")
+
+	// Determine status class for styling
+	statusClass := t.Payment_Status
+
+	return fmt.Sprintf(`
+	<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Receipt</title>
+    <style>
+        /* Insert your CSS styles here as before */
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <div class="receipt-header">
+            <p class="company-name">NeighboorConnect</p>
+            <p class="receipt-title">TRANSACTION RECEIPT</p>
+            <p class="receipt-id">ID: #%d</p>
+            <p class="receipt-date">Date: %s</p>
+        </div>
+        
+        <div class="receipt-section">
+            <div class="receipt-row">
+                <span class="receipt-label">Transaction Type:</span>
+                <span class="receipt-value">%s</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">Seller ID:</span>
+                <span class="receipt-value">%d</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">Buyer ID:</span>
+                <span class="receipt-value">%d</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">Listing ID:</span>
+                <span class="receipt-value">%d</span>
+            </div>
+        </div>
+        
+        <div class="receipt-section">
+            <div class="receipt-row receipt-total">
+                <span class="receipt-label">TOTAL AMOUNT:</span>
+                <span class="receipt-value">€ %.2f</span>
+            </div>
+        </div>
+        
+        <div class="receipt-section">
+            <div class="payment-status status-%s">
+                Payment Status: %s
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">Due Date:</span>
+                <span class="receipt-value">%s</span>
+            </div>
+        </div>
+        
+        <div class="dotted-border"></div>
+        
+        <div class="thank-you">
+            Thank you for your purchase!
+        </div>
+        
+        <div class="receipt-footer">
+            <p>This is an official receipt of your transaction.</p>
+            <p>If you have any questions, contact us at:</p>
+            <p>support@neighboorconnect.com</p>
+            <p>© 2024 NeighboorConnect</p>
+        </div>
+    </div>
+</body>
+</html>
+	`, id, transactionDate, t.Transaction_Type, sellerId, buyerId, listingId, t.Final_Price, statusClass, t.Payment_Status, dueDate)
+}
+
+/*
+   <div class="barcode">
+       <img src="https://placehold.co/250x50/333333/FFFFFF?text=*%d*" alt="Barcode">
+   </div>
+*/

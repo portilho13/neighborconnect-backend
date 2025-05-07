@@ -9,6 +9,7 @@ import (
 
 	"github.com/joho/godotenv"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/events"
+	modelsMarketPlace "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
 )
 
 type EmailConfig struct {
@@ -49,6 +50,18 @@ func SendEmail(email Email, email_type string, type_struct any) error {
 	case "reward":
 		if event, ok := type_struct.(models.Community_Event); ok {
 			htmlContent = CreateRewardEmailTemplate(event)
+		} else {
+			return fmt.Errorf("invalid data type for reward email")
+		}
+	case "order confirmation":
+		if transaction, ok := type_struct.(modelsMarketPlace.Transaction); ok {
+			htmlContent = CreateTransactionReceiptTemplate(transaction)
+		} else {
+			return fmt.Errorf("invalid data type for reward email")
+		}
+	case "order receipt":
+		if transaction, ok := type_struct.(modelsMarketPlace.Transaction); ok {
+			htmlContent = CreateTransactionReceiptTemplate(transaction)
 		} else {
 			return fmt.Errorf("invalid data type for reward email")
 		}

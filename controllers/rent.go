@@ -8,7 +8,6 @@ import (
 
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
-	repositoryControllersUsers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	"github.com/portilho13/neighborconnect-backend/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -95,7 +94,7 @@ func PayRent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 
 	}
 
-	seller_account, err := repositoryControllersUsers.GetAccountByUserId(user.Id, dbPool)
+	seller_account, err := repositoryControllers.GetAccountByUserId(user.Id, dbPool)
 	if err != nil {
 		http.Error(w, "Error Fetching Seller Id Account", http.StatusInternalServerError)
 		return
@@ -103,7 +102,7 @@ func PayRent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 
 	new_balance := seller_account.Balance - rent.Final_Amount
 
-	err = repositoryControllersUsers.UpdateAccountBalance(user.Id, new_balance, dbPool)
+	err = repositoryControllers.UpdateAccountBalance(user.Id, new_balance, dbPool)
 	if err != nil {
 		http.Error(w, "Error Updating Account Balance", http.StatusInternalServerError)
 		return
