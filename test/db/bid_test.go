@@ -5,11 +5,8 @@ import (
 	"testing"
 	"time"
 
-	// "github.com/pashagolub/pgxmock"
 	repository "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
-	// repository_users "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
-	// models_users "github.com/portilho13/neighborconnect-backend/repository/models/users"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

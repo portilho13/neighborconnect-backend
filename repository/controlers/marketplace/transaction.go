@@ -31,7 +31,9 @@ func CreateTransaction(transaction models.Transaction, dbPool *pgxpool.Pool) err
 }
 
 func GetTransactionById(id int, dbPool *pgxpool.Pool) (models.Transaction, error) {
-	query := `SELECT id, final_price, transaction_time, transaction_type, buyer_id, seller_id, listing_id, payment_status, payment_due_time`
+	query := `SELECT id, final_price, transaction_time, transaction_type, buyer_id, seller_id, listing_id, payment_status, payment_due_time
+	FROM marketplace.transaction
+	WHERE id = $1`
 
 	var transaction models.Transaction
 
