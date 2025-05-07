@@ -68,7 +68,7 @@ func TestCreateTransaction(t *testing.T) {
 		Seller_Id:        &sellerId,
 	}
 	// Testing function CreateTransaction
-	err = repository.CreateTransaction(transaction, dbPool)
+	_,err = repository.CreateTransaction(transaction, dbPool)
 	require.NoError(t, err)
 
 	CleanDatabase(dbPool, "users.users, marketplace.category, marketplace.listing, marketplace.transaction")

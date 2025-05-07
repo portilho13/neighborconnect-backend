@@ -14,22 +14,22 @@ import (
 func TestCreateCommunityEvent(t *testing.T) {
 	// Connect to the test database
 	dbPool, err := GetTestDBConnection()
-	if err != nil {
-		t.Fatalf("Failed to connect to test DB: %v", err)
-	}
+	require.NoError(t, err, "Failed to connect to test DB")
 	defer dbPool.Close()
 
-	// Ensure the database is clean before starting
+	// Clean the necessary tables
 	CleanDatabase(dbPool, "users.manager, events.community_event")
 
+	// Insert a manager to associate with the event
 	var managerId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.manager (name, email, password, phone) 
 		 VALUES ('John Doe', 'john@example.com', 'securepass', '123456789') 
 		 RETURNING id`).Scan(&managerId)
-	assert.NoError(t, err, "User insertion should succeed")
+	require.NoError(t, err, "Manager insertion should succeed")
 
-	var imag string
+	expiration := time.Date(2025, time.June, 1, 0, 0, 0, 0, time.Local).UTC()
+
 	event := models.Community_Event{
 		Name:              "test",
 		Percentage:        43,
@@ -37,15 +37,19 @@ func TestCreateCommunityEvent(t *testing.T) {
 		Capacity:          20,
 		Date_Time:         time.Date(2025, time.May, 30, 23, 3, 18, 120304000, time.Local).UTC(),
 		Manager_Id:        &managerId,
-		Event_Image:       &imag,
-		Duration:          time.Duration(2),
+		Event_Image:       "",
+		Duration:          time.Hour * 2,
 		Local:             "Barcelos",
 		Current_Ocupation: 12,
+		Status:            "active",
+		Expiration_Date:   &expiration, // Correção aqui
 	}
-	// Testar a função
+
+	// Test the repository function
 	err = repository.CreateCommunityEvent(event, dbPool)
-	require.NoError(t, err)
-	CleanDatabase(dbPool, "users.users, events.community_event")
+	require.NoError(t, err, "CreateCommunityEvent should not return an error")
+
+	
 }
 
 func TestAddUserToCommunityEvent(t *testing.T) {
@@ -76,16 +80,27 @@ func TestAddUserToCommunityEvent(t *testing.T) {
 	// Criar evento comunitário
 	eventImage := "image.jpg"
 	var eventId int
+	eventDate := time.Now().Add(24 * time.Hour).UTC()
+	duration := time.Hour
+	status := "active"
+	expirationDate := eventDate.Add(7 * 24 * time.Hour).UTC() // 7 dias depois do evento, por exemplo
+
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO events.community_event
-		(name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation)
-		 VALUES ('Cleanup Day', 30, 'CLN001', 20, $1, $2, $3, $4, 'Main Plaza', 0)
-		 RETURNING id`,
-		time.Now().Add(24*time.Hour).UTC(), managerId, eventImage, time.Hour).Scan(&eventId)
+		(name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation, status, expiration_date)
+		VALUES ('Cleanup Day', 30, 'CLN001', 20, $1, $2, $3, $4, 'Main Plaza', 0, $5, $6)
+		RETURNING id`,
+		eventDate, managerId, eventImage, duration, status, expirationDate,
+	).Scan(&eventId)
 	require.NoError(t, err, "Community event insertion should succeed")
-
-	// Chamar a função que será testada
-	err = repository.AddUserToCommunityEvent(userId, eventId, dbPool)
+	
+	userEvent := models.User_Event{
+		User_Id:       userId,
+		Event_Id:      eventId,
+		IsRewarded:    false,
+		ClaimedReward: false,
+	}
+	err = repository.AddUserToCommunityEvent(userEvent, dbPool)
 	assert.NoError(t, err, "AddUserToCommunityEvent should not return an error")
 
 	// Verificar se a associação foi feita
@@ -125,7 +140,7 @@ func TestGetAllEvents(t *testing.T) {
 			Capacity:          30,
 			Date_Time:         time.Now().Add(24 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
-			Event_Image:       &eventImage,
+			Event_Image:       eventImage,
 			Duration:          time.Hour * 2,
 			Local:             "Community Hall",
 			Current_Ocupation: 15,
@@ -137,7 +152,7 @@ func TestGetAllEvents(t *testing.T) {
 			Capacity:          50,
 			Date_Time:         time.Now().Add(48 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
-			Event_Image:       &eventImage,
+			Event_Image:       eventImage,
 			Duration:          time.Hour * 3,
 			Local:             "City Park",
 			Current_Ocupation: 25,
@@ -163,13 +178,12 @@ func TestGetAllEvents(t *testing.T) {
 		assert.Equal(t, expected.Code, actual.Code, "Code mismatch")
 		assert.Equal(t, expected.Capacity, actual.Capacity, "Capacity mismatch")
 		assert.WithinDuration(t, expected.Date_Time, actual.Date_Time, time.Second, "Date_Time mismatch")
-		assert.Equal(t, *expected.Event_Image, *actual.Event_Image, "Event_Image mismatch")
+		assert.Equal(t, expected.Event_Image, actual.Event_Image, "Event_Image mismatch")
 		assert.Equal(t, expected.Duration, actual.Duration, "Duration mismatch")
 		assert.Equal(t, expected.Local, actual.Local, "Local mismatch")
 		assert.Equal(t, expected.Current_Ocupation, actual.Current_Ocupation, "Current_Ocupation mismatch")
 	}
 }
-
 
 func TestGetAllEventsByManagerId(t *testing.T) {
 	// Conectar ao banco de testes
@@ -198,7 +212,7 @@ func TestGetAllEventsByManagerId(t *testing.T) {
 			Capacity:          30,
 			Date_Time:         time.Now().Add(24 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
-			Event_Image:       &eventImage,
+			Event_Image:       eventImage,
 			Duration:          time.Hour * 2,
 			Local:             "Community Hall",
 			Current_Ocupation: 15,
@@ -210,7 +224,7 @@ func TestGetAllEventsByManagerId(t *testing.T) {
 			Capacity:          50,
 			Date_Time:         time.Now().Add(48 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
-			Event_Image:       &eventImage,
+			Event_Image:       eventImage,
 			Duration:          time.Hour * 3,
 			Local:             "City Park",
 			Current_Ocupation: 25,
@@ -264,13 +278,12 @@ func TestGetAllEventsByManagerId(t *testing.T) {
 		assert.Equal(t, events[0].Code, retrievedEvents[0].Code, "Code mismatch")
 		assert.Equal(t, events[0].Capacity, retrievedEvents[0].Capacity, "Capacity mismatch")
 		assert.WithinDuration(t, events[0].Date_Time, retrievedEvents[0].Date_Time, time.Second, "Date_Time mismatch")
-		assert.Equal(t, *events[0].Event_Image, *retrievedEvents[0].Event_Image, "Event_Image mismatch")
+		assert.Equal(t, events[0].Event_Image, retrievedEvents[0].Event_Image, "Event_Image mismatch")
 		assert.Equal(t, events[0].Duration, retrievedEvents[0].Duration, "Duration mismatch")
 		assert.Equal(t, events[0].Local, retrievedEvents[0].Local, "Local mismatch")
 		assert.Equal(t, events[0].Current_Ocupation, retrievedEvents[0].Current_Ocupation, "Current_Ocupation mismatch")
 	})
 }
-
 
 func TestGetEventById(t *testing.T) {
 	// Conectar ao banco de testes
@@ -299,7 +312,7 @@ func TestGetEventById(t *testing.T) {
 			Capacity:          30,
 			Date_Time:         time.Now().Add(24 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
-			Event_Image:       &eventImage,
+			Event_Image:       eventImage,
 			Duration:          time.Hour * 2,
 			Local:             "Community Hall",
 			Current_Ocupation: 15,
@@ -311,7 +324,7 @@ func TestGetEventById(t *testing.T) {
 			Capacity:          50,
 			Date_Time:         time.Now().Add(48 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
-			Event_Image:       &eventImage,
+			Event_Image:       eventImage,
 			Duration:          time.Hour * 3,
 			Local:             "City Park",
 			Current_Ocupation: 25,
@@ -322,17 +335,19 @@ func TestGetEventById(t *testing.T) {
 	var insertedEventIDs []int
 	for _, e := range events {
 		var id int
+		status := "active"
+		expiration := e.Date_Time.Add(7 * 24 * time.Hour).UTC() // Exemplo de expiração
+
 		err := dbPool.QueryRow(context.Background(),
 			`INSERT INTO events.community_event 
-			 (name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation) 
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+			 (name, percentage, code, capacity, date_time, manager_id, event_image, duration, local, current_ocupation, status, expiration_date) 
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
 			e.Name, e.Percentage, e.Code, e.Capacity, e.Date_Time, e.Manager_Id,
-			e.Event_Image, e.Duration, e.Local, e.Current_Ocupation,
+			e.Event_Image, e.Duration, e.Local, e.Current_Ocupation, status, expiration,
 		).Scan(&id)
 		require.NoError(t, err, "Failed to insert event")
 		insertedEventIDs = append(insertedEventIDs, id)
 	}
-
 
 	// Testar GetEventById para cada evento inserido
 	for i, expected := range events {
@@ -345,7 +360,7 @@ func TestGetEventById(t *testing.T) {
 		assert.Equal(t, expected.Capacity, actual.Capacity, "Capacity mismatch")
 		assert.WithinDuration(t, expected.Date_Time, actual.Date_Time, time.Second, "Date_Time mismatch")
 		assert.Equal(t, *expected.Manager_Id, *actual.Manager_Id, "Manager_Id mismatch")
-		assert.Equal(t, *expected.Event_Image, *actual.Event_Image, "Event_Image mismatch")
+		assert.Equal(t, expected.Event_Image, actual.Event_Image, "Event_Image mismatch")
 		assert.Equal(t, expected.Duration, actual.Duration, "Duration mismatch")
 		assert.Equal(t, expected.Local, actual.Local, "Local mismatch")
 		assert.Equal(t, expected.Current_Ocupation, actual.Current_Ocupation, "Current_Ocupation mismatch")
