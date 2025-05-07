@@ -11,7 +11,7 @@ import (
 // TestInitDB tests the database initialization
 func TestInitDB(t *testing.T) {
 	// Use a test database URL (update as needed)
-	testDBURL := "postgres://neighborconnect:neighborconnect@158.220.93.168:5432/neighborconnect?sslmode=require"
+	testDBURL := "postgres://myuser:mypassword@localhost:5432/mydatabase?sslmode=disable"
 
 	// Initialize the DB connection
 	dbPool, err := repository.InitDB(testDBURL)
