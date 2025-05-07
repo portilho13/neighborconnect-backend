@@ -7,7 +7,7 @@ import (
 )
 
 func GetTestDBConnection() (*pgxpool.Pool, error) {
-	dbURL := `postgres://neighborconnect:neighborconnect@158.220.93.168:5432/neighborconnect?sslmode=require`
+	dbURL := `postgres://myuser:mypassword@localhost:5432/mydatabase?sslmode=disable`
 
 	dbPool, err := pgxpool.New(context.Background(), dbURL)
 	if err != nil {
