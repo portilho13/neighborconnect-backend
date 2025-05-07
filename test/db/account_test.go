@@ -63,15 +63,15 @@ func TestCreateAccount(t *testing.T) {
 	CleanDatabase(dbPool, "users.users,users.account")
 }
 func TestGetAccountByUserId(t *testing.T) {
-	// Conectar ao banco de testes
+	// Connect to the test database
 	dbPool, err := GetTestDBConnection()
 	require.NoError(t, err, "Failed to connect to test DB")
 	defer dbPool.Close()
 
-	// Limpar as tabelas relevantes
+	// Ensure the database is clean before starting
 	CleanDatabase(dbPool, "users.account, users.users")
 
-	// Inserir um usuário de teste
+	// Prepare test user
 	user := models.User{
 		Name:     "Alice Doe",
 		Email:    "alice@example.com",
@@ -81,11 +81,11 @@ func TestGetAccountByUserId(t *testing.T) {
 	err = repository.CreateUser(user, dbPool)
 	require.NoError(t, err, "CreateUser should not return an error")
 
-	// Recuperar o ID do usuário
+	// Retrive User ID
 	retrievedUser, err := repository.GetUserByEmail(user.Email, dbPool)
 	require.NoError(t, err, "GetUserByEmail should not return an error")
 
-	// Inserir uma conta associada a esse usuário
+	// Prepare test account
 	account := models.Account{
 		Account_number: "ACC123456",
 		Balance:        1000.0,
@@ -99,11 +99,11 @@ func TestGetAccountByUserId(t *testing.T) {
 	).Scan(&account.Id)
 	require.NoError(t, err, "Failed to insert account")
 
-	// Testar a função GetAccountByUserId
+	// Tests GetAccountByUserId Function
 	retrievedAccount, err := repository.GetAccountByUserId(retrievedUser.Id, dbPool)
 	require.NoError(t, err, "GetAccountByUserId should not return an error")
 
-	// Verificações
+	// Verifications
 	assert.Equal(t, account.Id, retrievedAccount.Id)
 	assert.Equal(t, account.Account_number, retrievedAccount.Account_number)
 	assert.Equal(t, account.Balance, retrievedAccount.Balance)

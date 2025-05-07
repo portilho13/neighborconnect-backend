@@ -182,22 +182,22 @@ func TestGetAllOccupiedApartments(t *testing.T) {
 
 
 func TestGetApartmentById(t *testing.T) {
-	// Conectar ao banco de dados de teste
+	// Connect to the test database
 	dbPool, err := GetTestDBConnection()
 	require.NoError(t, err)
 	defer dbPool.Close()
 
-	// Limpar tabelas relevantes
+	// Ensure the database is clean before starting
 	CleanDatabase(dbPool, "users.apartment, users.manager")
 
-	// Inserir um manager necessário para o relacionamento
+	// Step 1: Insert a manager first
 	var managerId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.manager (name, email, password, phone)
 		 VALUES ('Manager Jane', 'jane@example.com', 'securepass', '123123123') RETURNING id`).Scan(&managerId)
 	require.NoError(t, err)
 
-	// Criar um apartamento para testar
+	// Step 2: Insert an apartment with the valid manager_id
 	apartment := models.Apartment{
 		N_bedrooms: 2,
 		Floor:      5,

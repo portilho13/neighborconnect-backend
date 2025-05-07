@@ -52,7 +52,7 @@ func TestCreateTransaction(t *testing.T) {
 		Seller_Id:       &sellerId,
 		Category_Id:     &categoryid,
 	}
-	// Testar a função
+	// Testing function CreateListingReturningId
 	listingId, err := repository.CreateListingReturningId(listing, dbPool)
 	require.NoError(t, err)
 	require.NotNil(t, listingId)
@@ -67,7 +67,7 @@ func TestCreateTransaction(t *testing.T) {
 		Payment_Due_time: time.Date(2025, time.May, 7, 23, 3, 18, 120304000, time.Local).UTC(),
 		Seller_Id:        &sellerId,
 	}
-	// Testar a função
+	// Testing function CreateTransaction
 	err = repository.CreateTransaction(transaction, dbPool)
 	require.NoError(t, err)
 
@@ -75,15 +75,15 @@ func TestCreateTransaction(t *testing.T) {
 
 }
 func TestGetTransactionById(t *testing.T) {
-	// Conectar ao banco de testes
+	// Connect to the test database
 	dbPool, err := GetTestDBConnection()
 	require.NoError(t, err, "Failed to connect to test DB")
 	defer dbPool.Close()
 
-	// Limpar tabelas relevantes
+	// Ensure the database is clean before starting
 	CleanDatabase(dbPool, "users.users,marketplace.category,marketplace.listing,marketplace.transaction")
 
-	// Criar seller
+	// Create test seller
 	var sellerId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.users (name, email, password, phone) 
@@ -91,7 +91,7 @@ func TestGetTransactionById(t *testing.T) {
          RETURNING id`).Scan(&sellerId)
 	require.NoError(t, err, "Seller insertion should succeed")
 
-	// Criar buyer
+	// Create test buyer
 	var buyerId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO users.users (name, email, password, phone) 
@@ -99,7 +99,7 @@ func TestGetTransactionById(t *testing.T) {
          RETURNING id`).Scan(&buyerId)
 	require.NoError(t, err, "Buyer insertion should succeed")
 
-	// Criar categoria
+	// Create test category
 	var categoryId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO marketplace.category (name, url) 
@@ -107,7 +107,7 @@ func TestGetTransactionById(t *testing.T) {
          RETURNING id`).Scan(&categoryId)
 	require.NoError(t, err, "Category insertion should succeed")
 
-	// Criar listing
+	// Create test listing
 	listing := models.Listing{
 		Name:            "Modern Apartment",
 		Description:     "Spacious 2-bedroom apartment",
@@ -124,7 +124,7 @@ func TestGetTransactionById(t *testing.T) {
 	require.NoError(t, err, "Listing creation should succeed")
 	require.NotNil(t, listingId)
 
-	// Criar transação
+	// Create test transação
 	transaction := models.Transaction{
 		Final_Price:      220000,
 		Transaction_Time: time.Date(2025, time.May, 5, 23, 3, 18, 120304000, time.Local).UTC(),
@@ -136,7 +136,7 @@ func TestGetTransactionById(t *testing.T) {
 		Seller_Id:        &sellerId,
 	}
 
-	// Inserir transação e obter o ID
+	// insert transaction to receive Id
 	var transactionId int
 	err = dbPool.QueryRow(context.Background(),
 		`INSERT INTO marketplace.transaction 
@@ -153,11 +153,11 @@ func TestGetTransactionById(t *testing.T) {
 		transaction.Payment_Due_time).Scan(&transactionId)
 	require.NoError(t, err, "Transaction insertion should succeed")
 
-	// Obter transação pelo ID
+	// Gets Transaction by Id
 	retrievedTransaction, err := repository.GetTransactionById(transactionId, dbPool)
 	require.NoError(t, err, "Should not return error for existing transaction")
 
-	// Verificar todos os campos
+	// Verifications
 	assert.Equal(t, transaction.Final_Price, retrievedTransaction.Final_Price, "Final price mismatch")
 	assert.WithinDuration(t, transaction.Transaction_Time, retrievedTransaction.Transaction_Time, time.Second, "Transaction time mismatch")
 	assert.Equal(t, transaction.Transaction_Type, retrievedTransaction.Transaction_Type, "Transaction type mismatch")
