@@ -4,7 +4,7 @@ import "time"
 
 type PayJson struct {
 	Type           string `json:"type"`
-	Transaction_Id int    `json:"transaction_id"`
+	Transaction_Ids []int    `json:"transaction_ids"`
 	User_Id        int    `json:"user_id"`
 }
 

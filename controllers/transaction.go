@@ -28,25 +28,96 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		return
 	}
 
-	transaction, err := repositoryControllers.GetTransactionById(payJson.Transaction_Id, dbPool)
-	if err != nil {
-		http.Error(w, "Error Fetching Transaction", http.StatusInternalServerError)
-		return
-	}
+	final_price := 0.0
 
-	if transaction.Payment_Status != "pending" {
-		http.Error(w, "Invalid Transaction", http.StatusInternalServerError)
-		return
-	}
+	for _, transaction_id := range payJson.Transaction_Ids {
+		transaction, err := repositoryControllers.GetTransactionById(transaction_id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching Transaction", http.StatusInternalServerError)
+			return
+		}
+	
+		if transaction.Payment_Status != "pending" {
+			http.Error(w, "Invalid Transaction", http.StatusInternalServerError)
+			return
+		}
+	
+		if *transaction.Buyer_Id != payJson.User_Id {
+			http.Error(w, "Invalid User", http.StatusInternalServerError)
+			return
+		}
 
-	if *transaction.Buyer_Id != payJson.User_Id {
-		http.Error(w, "Invalid User", http.StatusInternalServerError)
-		return
+		final_price += transaction.Final_Price
+
+
+		seller_account, err := repositoryControllersUsers.GetAccountByUserId(*transaction.Seller_Id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching Seller Id Account", http.StatusInternalServerError)
+			return
+		}
+
+		payout := transaction.Final_Price * (1 - FEES)
+
+		newBalance := seller_account.Balance + payout
+
+		err = repositoryControllersUsers.UpdateAccountBalance(seller_account.Id, newBalance, dbPool)
+		if err != nil {
+			http.Error(w, "Error Adding Payout", http.StatusInternalServerError)
+			return
+		}
+
+		err = repositoryControllers.UpdateTransactionStatus("paid", *transaction.Id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Changing Transaction Status", http.StatusInternalServerError)
+			return
+		}
+
+
+		user, err := repositoryControllersUsers.GetUsersById(payJson.User_Id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Getting User Id", http.StatusInternalServerError)
+			return
+		}
+	
+		email_struct := email.Email{
+			To:      []string{user.Email},
+			Subject: "Order Receipt",
+		}
+	
+		err = email.SendEmail(email_struct, "order receipt", transaction)
+		if err != nil {
+			http.Error(w, "Error Sending Email", http.StatusInternalServerError)
+			return
+		}
+	
+		feesAmount := transaction.Final_Price * FEES
+	
+		manager_id, err := utils.GetManagerIdByUserId(*transaction.Seller_Id, dbPool)
+		if err != nil {
+			http.Error(w, "Error Fetching Manager Id", http.StatusInternalServerError)
+			return
+		}
+	
+		manager_transaction := models.Manager_Transaction{
+			Type:        "fees",
+			Amount:      feesAmount,
+			Date:        time.Now(),
+			Description: "Marketplace Fees",
+			Manager_Id:  *manager_id,
+		}
+	
+		err = repositoryControllersUsers.CreateManagerTransaction(manager_transaction, dbPool)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Adding Manager Transaction", http.StatusInternalServerError)
+			return
+		}
+
 	}
 
 	switch payJson.Type {
 	case "wallet":
-		if !utils.ValidateWalletBalance(payJson.User_Id, transaction.Final_Price, dbPool) {
+		if !utils.ValidateWalletBalance(payJson.User_Id, final_price, dbPool) {
 			http.Error(w, "Insuficient Balance", http.StatusInternalServerError)
 			return
 		}
@@ -55,67 +126,12 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		return
 	}
 
-	seller_account, err := repositoryControllersUsers.GetAccountByUserId(*transaction.Seller_Id, dbPool)
-	if err != nil {
-		http.Error(w, "Error Fetching Seller Id Account", http.StatusInternalServerError)
-		return
-	}
-
-	payout := transaction.Final_Price * (1 - FEES)
-
-	newBalance := seller_account.Balance + payout
-
-	err = repositoryControllersUsers.UpdateAccountBalance(seller_account.Id, newBalance, dbPool)
+	err = repositoryControllersUsers.UpdateAccountBalance(payJson.User_Id, final_price, dbPool)
 	if err != nil {
 		http.Error(w, "Error Adding Payout", http.StatusInternalServerError)
 		return
 	}
 
-	err = repositoryControllers.UpdateTransactionStatus("paid", *transaction.Id, dbPool)
-	if err != nil {
-		http.Error(w, "Error Changing Transaction Status", http.StatusInternalServerError)
-		return
-	}
-
-	user, err := repositoryControllersUsers.GetUsersById(payJson.User_Id, dbPool)
-	if err != nil {
-		http.Error(w, "Error Getting User Id", http.StatusInternalServerError)
-		return
-	}
-
-	email_struct := email.Email{
-		To:      []string{user.Email},
-		Subject: "Order Receipt",
-	}
-
-	err = email.SendEmail(email_struct, "order receipt", transaction)
-	if err != nil {
-		http.Error(w, "Error Sending Email", http.StatusInternalServerError)
-		return
-	}
-
-	feesAmount := transaction.Final_Price * FEES
-
-	manager_id, err := utils.GetManagerIdByUserId(*transaction.Seller_Id, dbPool)
-	if err != nil {
-		http.Error(w, "Error Fetching Manager Id", http.StatusInternalServerError)
-		return
-	}
-
-	manager_transaction := models.Manager_Transaction{
-		Type:        "fees",
-		Amount:      feesAmount,
-		Date:        time.Now(),
-		Description: "Marketplace Fees",
-		Manager_Id:  *manager_id,
-	}
-
-	err = repositoryControllersUsers.CreateManagerTransaction(manager_transaction, dbPool)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Adding Manager Transaction", http.StatusInternalServerError)
-		return
-	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
