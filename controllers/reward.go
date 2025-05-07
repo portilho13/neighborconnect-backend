@@ -77,9 +77,9 @@ func Reward(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 				return
 			}
 
-			err = repositoryControllers.UpdateRewardedStatus(*event.Id, user_event.User_Id, dbPool)
+			err = repositoryControllers.UpdateClaimedRewardStatus(*event.Id, user_event.User_Id, dbPool)
 			if err != nil {
-				http.Error(w, "Error Updating Reward Status", http.StatusInternalServerError)
+				http.Error(w, "Error Updating Claimed Reward Status", http.StatusInternalServerError)
 				return
 			}
 		}
