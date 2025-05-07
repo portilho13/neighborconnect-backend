@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
+	"github.com/portilho13/neighborconnect-backend/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -29,6 +31,7 @@ func GetRents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	var rentsJson []controllers_models.Rent
 
 	for _, rent := range rents {
+
 		rentJson := controllers_models.Rent{
 			Id:           rent.Id,
 			Month:        rent.Month,
@@ -39,6 +42,7 @@ func GetRents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 			Apartment_Id: rent.Apartment_Id,
 			Status:       rent.Status,
 			Due_Day:      rent.Due_day,
+			Pay_Day:      rent.Pay_Day,
 		}
 
 		rentsJson = append(rentsJson, rentJson)
@@ -50,4 +54,73 @@ func GetRents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func PayRent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	var rentPayJson controllers_models.RentPay
+
+	err := json.NewDecoder(r.Body).Decode(&rentPayJson)
+	if err != nil {
+		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
+		return
+	}
+
+	rent, err := repositoryControllers.GetRentById(rentPayJson.Rent_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Rents", http.StatusInternalServerError)
+		return
+	}
+
+	if rent.Status != "unpaid" {
+		http.Error(w, "Rent Already Paid", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := repositoryControllers.GetUsersById(rentPayJson.User_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching User", http.StatusInternalServerError)
+		return
+	}
+
+	switch rentPayJson.Payment_Type {
+	case "wallet":
+		if !utils.ValidateWalletBalance(user.Id, rent.Final_Amount, dbPool) {
+			http.Error(w, "Insuficient Balance", http.StatusInternalServerError)
+			return
+		}
+	default:
+		http.Error(w, "Unsuported Method", http.StatusInternalServerError)
+		return
+
+	}
+
+	seller_account, err := repositoryControllers.GetAccountByUserId(user.Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Seller Id Account", http.StatusInternalServerError)
+		return
+	}
+
+	new_balance := seller_account.Balance - rent.Final_Amount
+
+	err = repositoryControllers.UpdateAccountBalance(user.Id, new_balance, dbPool)
+	if err != nil {
+		http.Error(w, "Error Updating Account Balance", http.StatusInternalServerError)
+		return
+	}
+
+	err = repositoryControllers.UpdateRentStatus("paid", *rent.Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Updating Rent Status", http.StatusInternalServerError)
+		return
+	}
+
+	err = repositoryControllers.UpdateRentPayday(time.Now(), *rent.Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Updating Rent Pay Day", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Rent Paied Sucessfully !"})
 }

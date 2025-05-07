@@ -184,3 +184,13 @@ func GetAllApartmentsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]models
 
 	return apartments, nil
 }
+
+func DeleteApartmentById(apartment_id int, dbPool *pgxpool.Pool) error {
+	query := `DELETE FROM users.apartment WHERE id = $1`
+
+	_, err := dbPool.Exec(context.Background(), query, apartment_id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

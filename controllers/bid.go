@@ -37,10 +37,10 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	//Lazy check is listing is over
-	timeNow := time.Now()
+	timeNow := time.Now().UTC()
 	if timeNow.After(listing.Expiration_Date) {
 		if listing.Status == "active" {
-			err = utils.CloseListingBid(*listing.Id, dbPool)
+			err = utils.CloseListing(*listing.Id, dbPool)
 			if err != nil {
 				http.Error(w, "Invalid Listing", http.StatusBadRequest)
 				return
@@ -57,7 +57,7 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		return
 	}
 
-	var highestBid int
+	var highestBid float64
 
 	if len(bids) > 0 {
 		highestBid = bids[0].Bid_Ammount

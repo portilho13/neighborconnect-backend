@@ -24,3 +24,15 @@ func AddUserToEventsApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.AddUserToEvents(w, r, dbPool)
 	})
 }
+
+func ConcludeEventApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("POST /api/v1/event/conclude", func(w http.ResponseWriter, r *http.Request) {
+		controllers.ConcludeEvent(w, r, dbPool)
+	})
+}
+
+func RewardEventApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("POST /api/v1/event/reward", func(w http.ResponseWriter, r *http.Request) {
+		controllers.Reward(w, r, dbPool)
+	})
+}

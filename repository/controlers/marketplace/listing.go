@@ -202,3 +202,13 @@ func GetListingsBySellerId(seller_id int, dbPool *pgxpool.Pool) ([]models.Listin
 
 	return listings, nil
 }
+
+func DeleteListingById(listing_id int, dbPool *pgxpool.Pool) error {
+	query := `DELETE FROM marketplace.listing WHERE id = $1`
+
+	_, err := dbPool.Exec(context.Background(), query, listing_id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

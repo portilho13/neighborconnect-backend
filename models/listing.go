@@ -21,8 +21,8 @@ type ListingInfo struct {
 	Id              int               `json:"id"`
 	Name            string            `json:"name"`
 	Description     string            `json:"description"`
-	Buy_Now_Price   int               `json:"buy_now_price"`
-	Start_Price     int               `json:"start_price"`
+	Buy_Now_Price   float64           `json:"buy_now_price"`
+	Start_Price     float64           `json:"start_price"`
 	Current_bid     BidInfo           `json:"current_bid"`
 	Created_At      time.Time         `json:"created_at"`
 	Expiration_Date time.Time         `json:"expiration_date"`

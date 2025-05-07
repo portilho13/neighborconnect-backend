@@ -26,7 +26,7 @@ func CreateBuyOrder(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		return
 	}
 
-	timeNow := time.Now()
+	timeNow := time.Now().UTC()
 
 	if timeNow.After(listing.Expiration_Date) {
 		if listing.Status == "active" {
@@ -45,4 +45,8 @@ func CreateBuyOrder(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		http.Error(w, "Invalid Listing", http.StatusBadRequest)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Item Bought !"})
 }

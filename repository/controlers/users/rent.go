@@ -92,7 +92,7 @@ func CreateRentForApartmentById(apartment_id int, dbPool *pgxpool.Pool) error {
 func GetRentByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.Rent, error) {
 	var rents []models.Rent
 
-	query := `SELECT id, month, year, base_amount, reduction, final_amount, apartment_id, status, due_day FROM users.rent WHERE apartment_id = $1 ORDER BY year DESC, month DESC`
+	query := `SELECT id, month, year, base_amount, reduction, final_amount, apartment_id, status, due_day, pay_day FROM users.rent WHERE apartment_id = $1 ORDER BY year DESC, month DESC`
 
 	rows, err := dbPool.Query(context.Background(), query, apartment_id)
 
@@ -114,6 +114,7 @@ func GetRentByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.Rent
 			&rent.Apartment_Id,
 			&rent.Status,
 			&rent.Due_day,
+			&rent.Pay_Day,
 		)
 
 		if err != nil {
@@ -129,4 +130,65 @@ func GetRentByApartmentId(apartment_id int, dbPool *pgxpool.Pool) ([]models.Rent
 	}
 
 	return rents, nil
+}
+
+func GetRentById(rent_id int, dbPool *pgxpool.Pool) (models.Rent, error) {
+	var rent models.Rent
+	query := `SELECT id, month, year, base_amount, reduction, final_amount, apartment_id, status, due_day, pay_day FROM users.rent WHERE id = $1`
+
+	err := dbPool.QueryRow(context.Background(), query, rent_id).Scan(
+		&rent.Id,
+		&rent.Month,
+		&rent.Year,
+		&rent.Base_Amount,
+		&rent.Reduction,
+		&rent.Final_Amount,
+		&rent.Apartment_Id,
+		&rent.Status,
+		&rent.Due_day,
+		&rent.Pay_Day,
+	)
+
+	if err != nil {
+		return models.Rent{}, nil
+	}
+
+	return rent, nil
+
+}
+
+func UpdateRentReductionAndFinalAmount(rent_id int, new_reduction float64, new_amount float64, dbPool *pgxpool.Pool) error {
+	query := `UPDATE users.rent SET reduction = $1, final_amount = $2 WHERE id = $3`
+
+	_, err := dbPool.Exec(context.Background(), query, new_reduction, new_amount, rent_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func UpdateRentStatus(status string, rent_id int, dbPool *pgxpool.Pool) error {
+	query := `UPDATE users.rent SET status = $1 WHERE id = $2`
+
+	_, err := dbPool.Exec(context.Background(), query, status, rent_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func UpdateRentPayday(pay_day time.Time, rent_id int, dbPool *pgxpool.Pool) error {
+	query := `UPDATE users.rent SET pay_day = $1 WHERE id = $2`
+
+	_, err := dbPool.Exec(context.Background(), query, pay_day, rent_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }

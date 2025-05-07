@@ -109,3 +109,13 @@ func GetUsersById(user_id int, dbPool *pgxpool.Pool) (models.User, error) {
 
 	return user, nil
 }
+
+func DeleteUserById(user_id int, dbPool *pgxpool.Pool) error {
+	query := `DELETE FROM users.users WHERE id = $1`
+
+	_, err := dbPool.Exec(context.Background(), query, user_id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -36,6 +36,14 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.LoginManagerApiRoute(mux, dbPool)
 	routes.CreateApartmentApi(mux, dbPool)
 	routes.RegisterManagerApi(mux, dbPool)
+	routes.CreateDepositApi(mux, dbPool)
+	routes.CreateWithdrawApi(mux, dbPool)
+	routes.CreateBuyApiRoute(mux, dbPool)
+	routes.PayTransactionApi(mux, dbPool)
+	routes.ConcludeEventApiRoute(mux, dbPool)
+	routes.RewardEventApiRoute(mux, dbPool)
+	routes.PayRentApi(mux, dbPool)
+	routes.GetTransactions(mux, dbPool)
 
 	routes.ServerFilesApi(mux)
 
@@ -55,6 +63,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Get database URL
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
@@ -74,6 +85,12 @@ func main() {
 	defer repository.CloseDB(dbPool)
 
 	go utils.AutomateRents(dbPool)
+
+	go utils.AutomateListingClosing(dbPool)
+
+	go utils.AutomateEventDeleting(dbPool)
+
+	go utils.AutomateTransactionDeleting(dbPool)
 
 	mux := InitializeRoutes(dbPool)
 	go ws.Hub.Run()

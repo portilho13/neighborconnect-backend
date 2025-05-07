@@ -4,7 +4,7 @@ import "time"
 
 type Account_Movement struct {
 	Id int
-	Ammount int
+	Ammount float64
 	Created_at time.Time
 	Account_id *int
 	Type string
