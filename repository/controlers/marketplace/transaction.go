@@ -107,3 +107,55 @@ func GetTransactionsByBuyerId(buyer_id int, dbPool *pgxpool.Pool) ([]models.Tran
 
 	return transactions, nil
 }
+
+func GetAllTransactions(dbPool *pgxpool.Pool) ([]models.Transaction, error) {
+	var transactions []models.Transaction
+
+	query := `SELECT id, final_price, transaction_time, transaction_type, buyer_id, seller_id, listing_id, payment_status, payment_due_time FROM marketplace.transaction`
+
+	rows, err := dbPool.Query(context.Background(), query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var transaction models.Transaction
+		err := rows.Scan(
+			&transaction.Id,
+			&transaction.Final_Price,
+			&transaction.Transaction_Time,
+			&transaction.Transaction_Type,
+			&transaction.Buyer_Id,
+			&transaction.Seller_Id,
+			&transaction.Listing_Id,
+			&transaction.Payment_Status,
+			&transaction.Payment_Due_time,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		transactions = append(transactions, transaction)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return transactions, nil
+}
+
+func DeleteTransactionById(transaction_id int, dbPool *pgxpool.Pool) error {
+	query := `DELETE FROM marketplace.transaction WHERE id = $1`
+
+	_, err := dbPool.Exec(context.Background(), query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

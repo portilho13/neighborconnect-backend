@@ -15,4 +15,5 @@ type Community_Event struct {
 	Local             string
 	Current_Ocupation int
 	Status            string
+	Expiration_Date *time.Time
 }

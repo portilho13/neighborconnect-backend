@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -228,6 +229,20 @@ func ConcludeEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 			http.Error(w, "Error Sending Event Email", http.StatusInternalServerError)
 			return
 		}
+
+	}
+
+	date_in_five_days := time.Now().UTC().AddDate(0, 0, 5)
+	err = repositoryControllers.UpdateExpirationDate(date_in_five_days, concludeEvent.Event_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Adding Expiration Date to Event", http.StatusInternalServerError)
+		return
+	}
+
+	err = repositoryControllers.UpdateEventStatus("finish", concludeEvent.Event_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Updating Event Status", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

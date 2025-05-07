@@ -88,6 +88,10 @@ func main() {
 
 	go utils.AutomateListingClosing(dbPool)
 
+	go utils.AutomateEventDeleting(dbPool)
+
+	go utils.AutomateTransactionDeleting(dbPool)
+
 	mux := InitializeRoutes(dbPool)
 	go ws.Hub.Run()
 

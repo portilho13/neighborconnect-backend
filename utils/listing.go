@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -141,7 +142,10 @@ func closeExpiredListings(dbPool *pgxpool.Pool) error {
 func AutomateListingClosing(dbPool *pgxpool.Pool) {
 	c := cron.New(cron.WithSeconds())
 	c.AddFunc("@every 1s", func() { // Maybe change this ???
-		_ = closeExpiredListings(dbPool)
+		err := closeExpiredListings(dbPool)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	})
 
