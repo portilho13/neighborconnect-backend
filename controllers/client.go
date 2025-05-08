@@ -109,6 +109,7 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	session, _ := utils.Store.Get(r, "client-session")
 	session.Values["user_id"] = user.Id
 	session.Values["email"] = user.Email
+	session.Values["role"] = "user"
 	session.Save(r, w)
 
 	avatar := ""
@@ -130,16 +131,27 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	json.NewEncoder(w).Encode(userJson)
 }
 
-
 func LogoutHandlerUser(w http.ResponseWriter, r *http.Request) {
-    session, _ := utils.Store.Get(r, "client-session")
+	session, err := utils.Store.Get(r, "client-session")
+	if err != nil {
+		http.Error(w, "Failed to get session", http.StatusInternalServerError)
+		return
+	}
 
-    delete(session.Values, "user_id")
-    delete(session.Values, "email")
+	// Verifica se há um usuário logado
+	if session.Values["user_id"] == nil {
+		http.Error(w, "No active session", http.StatusBadRequest)
+		return
+	}
 
-    // Invalidate the session cookie
-    session.Options.MaxAge = -1
+	// Invalida a sessão
+	session.Options.MaxAge = -1
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, "Failed to clear session", http.StatusInternalServerError)
+		return
+	}
 
-    session.Save(r, w)
-
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Logged out successfully"))
 }
