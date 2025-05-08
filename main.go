@@ -44,8 +44,9 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.RewardEventApiRoute(mux, dbPool)
 	routes.PayRentApi(mux, dbPool)
 	routes.GetTransactions(mux, dbPool)
-	routes.LogoutClientApiRoute(mux)
-	routes.LogoutManagerApiRoute(mux)
+	routes.GetUsersEventsApiRoute(mux, dbPool)
+	//routes.LogoutClientApiRoute(mux)
+	//routes.LogoutManagerApiRoute(mux)
 
 	routes.ServerFilesApi(mux)
 

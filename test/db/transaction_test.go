@@ -46,8 +46,8 @@ func TestCreateTransaction(t *testing.T) {
 		Description:     "Spacious 2-bedroom apartment",
 		Buy_Now_Price:   250000,
 		Start_Price:     200000,
-		Created_At:      time.Now(),
-		Expiration_Date: time.Now().Add(72 * time.Hour),
+		Created_At:      time.Now().UTC(),
+		Expiration_Date: time.Now().UTC().Add(72 * time.Hour),
 		Status:          "active",
 		Seller_Id:       &sellerId,
 		Category_Id:     &categoryid,
@@ -68,7 +68,7 @@ func TestCreateTransaction(t *testing.T) {
 		Seller_Id:        &sellerId,
 	}
 	// Testing function CreateTransaction
-	_,err = repository.CreateTransaction(transaction, dbPool)
+	_, err = repository.CreateTransaction(transaction, dbPool)
 	require.NoError(t, err)
 
 	CleanDatabase(dbPool, "users.users, marketplace.category, marketplace.listing, marketplace.transaction")
@@ -113,8 +113,8 @@ func TestGetTransactionById(t *testing.T) {
 		Description:     "Spacious 2-bedroom apartment",
 		Buy_Now_Price:   250000,
 		Start_Price:     200000,
-		Created_At:      time.Now(),
-		Expiration_Date: time.Now().Add(72 * time.Hour),
+		Created_At:      time.Now().UTC(),
+		Expiration_Date: time.Now().UTC().Add(72 * time.Hour),
 		Status:          "active",
 		Seller_Id:       &sellerId,
 		Category_Id:     &categoryId,

@@ -306,7 +306,6 @@ func GetAllUsersFromEventByEventId(event_id int, dbPool *pgxpool.Pool) ([]models
 	return users_events, nil
 }
 
-
 func UpdateExpirationDate(date time.Time, event_id int, dbPool *pgxpool.Pool) error {
 	query := `UPDATE events.community_event SET expiration_date = $1 WHERE id = $2`
 
@@ -373,4 +372,15 @@ func GetAllFinishedEvents(dbPool *pgxpool.Pool) ([]models.Community_Event, error
 	}
 
 	return events, nil
+}
+
+func UpdateEventCurrentOcupation(current_ocupation int, event_id int, dbPool *pgxpool.Pool) error {
+	query := `UPDATE events.community_event SET current_ocupation = $1 WHERE id = $2`
+
+	_, err := dbPool.Exec(context.Background(), query, current_ocupation, event_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

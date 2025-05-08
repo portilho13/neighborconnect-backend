@@ -36,19 +36,18 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			http.Error(w, "Error Fetching Transaction", http.StatusInternalServerError)
 			return
 		}
-	
+
 		if transaction.Payment_Status != "pending" {
 			http.Error(w, "Invalid Transaction", http.StatusInternalServerError)
 			return
 		}
-	
+
 		if *transaction.Buyer_Id != payJson.User_Id {
 			http.Error(w, "Invalid User", http.StatusInternalServerError)
 			return
 		}
 
 		final_price += transaction.Final_Price
-
 
 		seller_account, err := repositoryControllersUsers.GetAccountByUserId(*transaction.Seller_Id, dbPool)
 		if err != nil {
@@ -72,40 +71,39 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			return
 		}
 
-
 		user, err := repositoryControllersUsers.GetUsersById(payJson.User_Id, dbPool)
 		if err != nil {
 			http.Error(w, "Error Getting User Id", http.StatusInternalServerError)
 			return
 		}
-	
+
 		email_struct := email.Email{
 			To:      []string{user.Email},
 			Subject: "Order Receipt",
 		}
-	
+
 		err = email.SendEmail(email_struct, "order receipt", transaction)
 		if err != nil {
 			http.Error(w, "Error Sending Email", http.StatusInternalServerError)
 			return
 		}
-	
+
 		feesAmount := transaction.Final_Price * FEES
-	
+
 		manager_id, err := utils.GetManagerIdByUserId(*transaction.Seller_Id, dbPool)
 		if err != nil {
 			http.Error(w, "Error Fetching Manager Id", http.StatusInternalServerError)
 			return
 		}
-	
+
 		manager_transaction := models.Manager_Transaction{
 			Type:        "fees",
 			Amount:      feesAmount,
-			Date:        time.Now(),
+			Date:        time.Now().UTC(),
 			Description: "Marketplace Fees",
 			Manager_Id:  *manager_id,
 		}
-	
+
 		err = repositoryControllersUsers.CreateManagerTransaction(manager_transaction, dbPool)
 		if err != nil {
 			fmt.Println(err)
@@ -131,7 +129,6 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		http.Error(w, "Error Adding Payout", http.StatusInternalServerError)
 		return
 	}
-
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

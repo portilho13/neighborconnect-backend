@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -38,7 +39,7 @@ func CloseListing(id int, dbPool *pgxpool.Pool) error {
 
 	transaction := models.Transaction{
 		Final_Price:      highestBidder.Bid_Ammount,
-		Transaction_Time: time.Now(),
+		Transaction_Time: time.Now().UTC(),
 		Transaction_Type: "bid",
 		Seller_Id:        sellerId,
 		Buyer_Id:         highestBidder.User_Id,
@@ -87,7 +88,7 @@ func CloseListingBuy(listingId int, buyerId int, dbPool *pgxpool.Pool) error {
 
 	transaction := models.Transaction{
 		Final_Price:      listing.Buy_Now_Price,
-		Transaction_Time: time.Now(),
+		Transaction_Time: time.Now().UTC(),
 		Transaction_Type: "buy",
 		Seller_Id:        sellerId,
 		Buyer_Id:         &buyerId,
@@ -127,8 +128,11 @@ func closeExpiredListings(dbPool *pgxpool.Pool) error {
 		return err
 	}
 
+	currentTimeUTC := time.Now().UTC()
+
 	for _, listing := range listings {
-		if time.Now().After(listing.Expiration_Date) {
+		fmt.Println(currentTimeUTC, listing.Expiration_Date.UTC())
+		if currentTimeUTC.After(listing.Expiration_Date.UTC()) {
 			err = CloseListing(*listing.Id, dbPool)
 			if err != nil {
 				return err

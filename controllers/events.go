@@ -129,6 +129,8 @@ func GetEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 				Duration:          event.Duration,
 				Local:             event.Local,
 				Current_Ocupation: event.Current_Ocupation,
+				Status:            event.Status,
+				Expiration_Date:   event.Expiration_Date,
 			})
 
 		}
@@ -151,6 +153,8 @@ func GetEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 				Duration:          event.Duration,
 				Local:             event.Local,
 				Current_Ocupation: event.Current_Ocupation,
+				Status:            event.Status,
+				Expiration_Date:   event.Expiration_Date,
 			})
 
 		}
@@ -170,6 +174,23 @@ func AddUserToEvents(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Poo
 	err := json.NewDecoder(r.Body).Decode(&joinEventJson)
 	if err != nil {
 		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
+		return
+	}
+
+	event, err := repositoryControllers.GetEventById(joinEventJson.Community_Event_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Event", http.StatusInternalServerError)
+		return
+	}
+
+	if event.Current_Ocupation == event.Capacity {
+		http.Error(w, "Event is Full", http.StatusInternalServerError)
+		return
+	}
+
+	err = repositoryControllers.UpdateEventCurrentOcupation(event.Current_Ocupation+1, *event.Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Updating Current Ocupation", http.StatusInternalServerError)
 		return
 	}
 
@@ -249,4 +270,50 @@ func ConcludeEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Event Concluded Sucessfully"})
 
+}
+
+func GetUserListFromEventId(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	query := r.URL.Query()
+	idStr := query.Get("event_id")
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
+
+	users, err := repositoryControllers.GetAllUsersFromEventByEventId(id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Getting Users in Event", http.StatusInternalServerError)
+		return
+	}
+
+	var usersJson []controllers_models.UserLogin
+
+	for _, user_event := range users {
+		user, err := repositoryControllersUsers.GetUsersById(user_event.User_Id, dbPool)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Error Getting User", http.StatusInternalServerError)
+			return
+		}
+
+		userJson := controllers_models.UserLogin{
+			Id:          user.Id,
+			Name:        user.Name,
+			Email:       user.Email,
+			Phone:       user.Phone,
+			ApartmentID: *user.Apartment_id,
+			Avatar:      *user.Profile_Picture,
+		}
+
+		usersJson = append(usersJson, userJson)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(usersJson); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }

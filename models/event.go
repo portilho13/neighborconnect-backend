@@ -23,6 +23,8 @@ type EventInfo struct {
 	Duration          time.Duration `json:"duration"`
 	Local             string        `json:"local"`
 	Current_Ocupation int           `json:"current_ocupation"`
+	Status            string        `json:"status"`
+	Expiration_Date   *time.Time    `json:"expiration_date"`
 }
 
 type JoinEvent struct {

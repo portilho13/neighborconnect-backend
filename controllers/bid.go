@@ -66,7 +66,7 @@ func CreateBid(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	if bidJSON.Bid_Ammount > highestBid || len(bids) == 0 { // Only accept if bid ammount is bigger than highest bid
-		nowTime := time.Now()
+		nowTime := time.Now().UTC()
 		bid := models.Bid{
 			Bid_Ammount: bidJSON.Bid_Ammount,
 			Bid_Time:    nowTime,

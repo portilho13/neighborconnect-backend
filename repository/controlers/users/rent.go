@@ -22,7 +22,7 @@ func CreateRentForAllApartments(dbPool *pgxpool.Pool) error {
 		return err
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	month := now.Month()
 
@@ -60,7 +60,7 @@ func CreateRentForApartmentById(apartment_id int, dbPool *pgxpool.Pool) error {
 		return err
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	month := now.Month()
 

@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
 func TestCreateWithdraw(t *testing.T) {
 	// Connect to the test database
 	dbPool, err := GetTestDBConnection()
@@ -42,8 +41,8 @@ func TestCreateWithdraw(t *testing.T) {
 	// // Step 2: Insert a test account for the user
 	account := models.Account{
 		Account_number: "123ABC",
-		Balance:       1000,
-		Currency:      "CHF",
+		Balance:        1000,
+		Currency:       "CHF",
 		Users_id:       &user.Id,
 	}
 
@@ -53,13 +52,12 @@ func TestCreateWithdraw(t *testing.T) {
 	account, err = repository.GetAccountByUserId(user.Id, dbPool)
 	assert.NoError(t, err, "Get account should not give an error")
 
-
 	// // Step 3: Insert a withdrawal (Account Movement)
 	accountMovement := models.Account_Movement{
 		Ammount:    5000,
-		Created_at: time.Now(),
+		Created_at: time.Now().UTC(),
 		Account_id: &account.Id,
-		Type:      "withdrawal",
+		Type:       "withdrawal",
 	}
 
 	err = repository.CreateAccountMovement(accountMovement, dbPool)
@@ -78,4 +76,3 @@ func TestCreateWithdraw(t *testing.T) {
 	CleanDatabase(dbPool, "users.account")
 	CleanDatabase(dbPool, "users.users")
 }
-

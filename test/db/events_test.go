@@ -49,7 +49,6 @@ func TestCreateCommunityEvent(t *testing.T) {
 	err = repository.CreateCommunityEvent(event, dbPool)
 	require.NoError(t, err, "CreateCommunityEvent should not return an error")
 
-	
 }
 
 func TestAddUserToCommunityEvent(t *testing.T) {
@@ -80,7 +79,7 @@ func TestAddUserToCommunityEvent(t *testing.T) {
 	// Criar evento comunitário
 	eventImage := "image.jpg"
 	var eventId int
-	eventDate := time.Now().Add(24 * time.Hour).UTC()
+	eventDate := time.Now().UTC().Add(24 * time.Hour).UTC()
 	duration := time.Hour
 	status := "active"
 	expirationDate := eventDate.Add(7 * 24 * time.Hour).UTC() // 7 dias depois do evento, por exemplo
@@ -93,7 +92,7 @@ func TestAddUserToCommunityEvent(t *testing.T) {
 		eventDate, managerId, eventImage, duration, status, expirationDate,
 	).Scan(&eventId)
 	require.NoError(t, err, "Community event insertion should succeed")
-	
+
 	userEvent := models.User_Event{
 		User_Id:       userId,
 		Event_Id:      eventId,
@@ -138,7 +137,7 @@ func TestGetAllEvents(t *testing.T) {
 			Percentage:        50,
 			Code:              "MEET001",
 			Capacity:          30,
-			Date_Time:         time.Now().Add(24 * time.Hour).UTC(),
+			Date_Time:         time.Now().UTC().Add(24 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
 			Event_Image:       eventImage,
 			Duration:          time.Hour * 2,
@@ -150,7 +149,7 @@ func TestGetAllEvents(t *testing.T) {
 			Percentage:        75,
 			Code:              "CHAR001",
 			Capacity:          50,
-			Date_Time:         time.Now().Add(48 * time.Hour).UTC(),
+			Date_Time:         time.Now().UTC().Add(48 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
 			Event_Image:       eventImage,
 			Duration:          time.Hour * 3,
@@ -210,7 +209,7 @@ func TestGetAllEventsByManagerId(t *testing.T) {
 			Percentage:        50,
 			Code:              "MEET001",
 			Capacity:          30,
-			Date_Time:         time.Now().Add(24 * time.Hour).UTC(),
+			Date_Time:         time.Now().UTC().Add(24 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
 			Event_Image:       eventImage,
 			Duration:          time.Hour * 2,
@@ -222,7 +221,7 @@ func TestGetAllEventsByManagerId(t *testing.T) {
 			Percentage:        75,
 			Code:              "CHAR001",
 			Capacity:          50,
-			Date_Time:         time.Now().Add(48 * time.Hour).UTC(),
+			Date_Time:         time.Now().UTC().Add(48 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
 			Event_Image:       eventImage,
 			Duration:          time.Hour * 3,
@@ -310,7 +309,7 @@ func TestGetEventById(t *testing.T) {
 			Percentage:        50,
 			Code:              "MEET001",
 			Capacity:          30,
-			Date_Time:         time.Now().Add(24 * time.Hour).UTC(),
+			Date_Time:         time.Now().UTC().Add(24 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
 			Event_Image:       eventImage,
 			Duration:          time.Hour * 2,
@@ -322,7 +321,7 @@ func TestGetEventById(t *testing.T) {
 			Percentage:        75,
 			Code:              "CHAR001",
 			Capacity:          50,
-			Date_Time:         time.Now().Add(48 * time.Hour).UTC(),
+			Date_Time:         time.Now().UTC().UTC().Add(48 * time.Hour).UTC(),
 			Manager_Id:        &managerId,
 			Event_Image:       eventImage,
 			Duration:          time.Hour * 3,

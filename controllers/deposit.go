@@ -42,7 +42,7 @@ func CreateDeposit(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 
 	account_movement := models.Account_Movement{
 		Ammount:    depositJson.Amount,
-		Created_at: time.Now(),
+		Created_at: time.Now().UTC(),
 		Account_id: &account.Id,
 		Type:       "deposit",
 	}

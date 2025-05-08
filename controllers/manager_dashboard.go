@@ -202,6 +202,8 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 			Duration:          event.Duration,
 			Local:             event.Local,
 			Current_Ocupation: event.Current_Ocupation,
+			Status:            event.Status,
+			Expiration_Date:   event.Expiration_Date,
 		})
 	}
 

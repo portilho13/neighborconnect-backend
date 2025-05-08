@@ -39,8 +39,8 @@ func TestCreateBidReturningId(t *testing.T) {
 		Description:     "Spacious 2-bedroom apartment",
 		Buy_Now_Price:   250000,
 		Start_Price:     200000,
-		Created_At:      time.Now(),
-		Expiration_Date: time.Now().Add(72 * time.Hour),
+		Created_At:      time.Now().UTC(),
+		Expiration_Date: time.Now().UTC().Add(72 * time.Hour),
 		Status:          "active",
 		Seller_Id:       &userId,
 		Category_Id:     &categoryid,
@@ -53,7 +53,7 @@ func TestCreateBidReturningId(t *testing.T) {
 
 	bid := models.Bid{
 		Bid_Ammount: 100,
-		Bid_Time:    time.Now(),
+		Bid_Time:    time.Now().UTC(),
 		User_Id:     &userId,
 		Listing_Id:  id,
 	}
@@ -95,8 +95,8 @@ func TestGetBidsByListingId(t *testing.T) {
 		Description:     "Test Description",
 		Buy_Now_Price:   250000,
 		Start_Price:     200000,
-		Created_At:      time.Now(),
-		Expiration_Date: time.Now().Add(72 * time.Hour),
+		Created_At:      time.Now().UTC(),
+		Expiration_Date: time.Now().UTC().Add(72 * time.Hour),
 		Status:          "active",
 		Seller_Id:       &userId,
 		Category_Id:     &categoryId,
