@@ -52,14 +52,14 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	}
 
 	// Parse the expiration time from string to time.Time
-	/* 	var expirationDate time.Time
-	   	if listingData.Expiration_Date != "" {
-	   		expirationDate, err = time.Parse(time.RFC3339, listingData.Expiration_Date)
-	   		if err != nil {
-	   			http.Error(w, "Invalid expiration_time format. Use RFC3339", http.StatusBadRequest)
-	   			return
-	   		}
-	   	} */
+	var expirationDate time.Time
+	if listingData.Expiration_Date != "" {
+		expirationDate, err = time.Parse(time.RFC3339, listingData.Expiration_Date)
+		if err != nil {
+			http.Error(w, "Invalid expiration_time format. Use RFC3339", http.StatusBadRequest)
+			return
+		}
+	}
 
 	sellerID, err := strconv.Atoi(listingData.Seller_Id)
 	if err != nil {
@@ -79,17 +79,15 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	}
 
 	listingDB := models.Listing{
-		Name:          listingData.Name,
-		Description:   listingData.Description,
-		Buy_Now_Price: float64(buyNowPrice),
-		Start_Price:   float64(startPrice),
-		Created_At:    time.Now().UTC(),
-		//Expiration_Date: expirationDate,
-		Expiration_Date: time.Now().UTC().Add(time.Minute / 4),
-
-		Status:      "active",
-		Seller_Id:   sellerIDPtr,
-		Category_Id: &categoryID,
+		Name:            listingData.Name,
+		Description:     listingData.Description,
+		Buy_Now_Price:   float64(buyNowPrice),
+		Start_Price:     float64(startPrice),
+		Created_At:      time.Now().UTC(),
+		Expiration_Date: expirationDate.UTC(),
+		Status:          "active",
+		Seller_Id:       sellerIDPtr,
+		Category_Id:     &categoryID,
 	}
 
 	id, err := repositoryControllers.CreateListingReturningId(listingDB, dbPool)
