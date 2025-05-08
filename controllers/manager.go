@@ -18,7 +18,12 @@ func RegisterManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Poo
 		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
 		return
 	}
-
+	// Verificar duplicação
+	existingManager, err := repositoryControllers.GetManagerByEmail(client.Email, dbPool)
+	if err == nil && existingManager.Email != "" {
+		http.Error(w, "Email already registered", http.StatusConflict)
+		return
+	}
 	encodedPassword, err := utils.GenerateFromPassword(client.Password, utils.DefaultArgon2Params)
 	if err != nil {
 		http.Error(w, "Error creating user", http.StatusBadGateway)
@@ -66,6 +71,7 @@ func LoginManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) 
 	session, _ := utils.Store.Get(r, "manager-session")
 	session.Values["manager_id"] = manager.Id
 	session.Values["email"] = manager.Email
+	session.Values["role"] = "manager"
 	session.Save(r, w)
 
 	managerJson := controllers_models.ManagerInfoJson{
@@ -83,15 +89,14 @@ func LoginManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) 
 	}
 }
 
-
 func LogoutHandlerManager(w http.ResponseWriter, r *http.Request) {
-    session, _ := utils.Store.Get(r, "session")
+	session, _ := utils.Store.Get(r, "session")
 
-    delete(session.Values, "user_id")
-    delete(session.Values, "email")
+	delete(session.Values, "user_id")
+	delete(session.Values, "email")
 
-    session.Options.MaxAge = -1
+	session.Options.MaxAge = -1
 
-    session.Save(r, w)
+	session.Save(r, w)
 
 }
