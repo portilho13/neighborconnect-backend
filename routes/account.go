@@ -12,3 +12,9 @@ func GetAccountApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.GetAccount(w, r, dbPool)
 	})
 }
+
+func GetAccountMovementsApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("GET /api/v1/account/movement", func(w http.ResponseWriter, r *http.Request) {
+		controllers.GetAccountMovements(w, r, dbPool)
+	})
+}
