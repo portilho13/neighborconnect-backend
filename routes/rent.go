@@ -13,6 +13,12 @@ func GetRentsApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 	})
 }
 
+func GetRentsByIdApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("GET /api/v1/rent/info", func(w http.ResponseWriter, r *http.Request) {
+		controllers.GetRentById(w, r, dbPool)
+	})
+}
+
 func PayRentApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 	mux.HandleFunc("POST /api/v1/rent", func(w http.ResponseWriter, r *http.Request) {
 		controllers.PayRent(w, r, dbPool)

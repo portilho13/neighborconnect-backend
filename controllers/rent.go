@@ -124,3 +124,40 @@ func PayRent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Rent Paied Sucessfully !"})
 }
+
+
+func GetRentById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	rent_id_str := r.URL.Query().Get("id")
+
+	rent_id, err := strconv.Atoi(rent_id_str)
+	if err != nil {
+		http.Error(w, "Invalid Rent ID", http.StatusBadRequest)
+		return
+	}
+
+	rent, err := repositoryControllers.GetRentById(rent_id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Rent", http.StatusInternalServerError)
+		return
+	}
+
+	rentJson := controllers_models.Rent{
+		Id:           rent.Id,
+		Month:        rent.Month,
+		Year:         rent.Year,
+		Base_Amount:  rent.Base_Amount,
+		Reduction:    rent.Reduction,
+		Final_Amount: rent.Final_Amount,
+		Apartment_Id: rent.Apartment_Id,
+		Status:       rent.Status,
+		Due_Day:      rent.Due_day,
+		Pay_Day:      rent.Pay_Day,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(rentJson); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}

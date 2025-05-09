@@ -3,7 +3,7 @@ package controllers_models
 import "time"
 
 type Rent struct {
-	Id           *int
+	Id           *int	`json:"id"`
 	Month        int        `json:"month"`
 	Year         int        `json:"year"`
 	Base_Amount  float64    `json:"base_amount"`
