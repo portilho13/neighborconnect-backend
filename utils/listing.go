@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -131,7 +130,6 @@ func closeExpiredListings(dbPool *pgxpool.Pool) error {
 	currentTimeUTC := time.Now().UTC()
 
 	for _, listing := range listings {
-		fmt.Println(currentTimeUTC, listing.Expiration_Date.UTC())
 		if currentTimeUTC.After(listing.Expiration_Date.UTC()) {
 			err = CloseListing(*listing.Id, dbPool)
 			if err != nil {
