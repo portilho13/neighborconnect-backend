@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/users"
 )
@@ -20,6 +22,10 @@ func CreateUser(user models.User, dbPool *pgxpool.Pool) error {
 	)
 
 	if err != nil {
+		// Tratar erro de email duplicado (violação de unique)
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
+			return fmt.Errorf("email already registered")
+		}
 		return err
 	}
 

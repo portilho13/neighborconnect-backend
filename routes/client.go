@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/portilho13/neighborconnect-backend/controllers"
+	"github.com/portilho13/neighborconnect-backend/middleware"
 )
 
 func RegisterClientApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
@@ -12,14 +13,16 @@ func RegisterClientApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.RegisterClient(w, r, dbPool)
 	})
 }
+
 func LoginClientApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
-	mux.HandleFunc("POST /api/v1/client/login", func(w http.ResponseWriter, r *http.Request) {
-		controllers.LoginClient(w, r, dbPool)
-	})
+	mux.Handle("POST /api/v1/client/login",
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			controllers.LoginClient(w, r, dbPool)
+		}),
+	)
 }
 
 func LogoutClientApiRoute(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/v1/client/logout", func(w http.ResponseWriter, r *http.Request) {
-		controllers.LogoutHandlerUser(w, r)
-	})
+	mux.Handle("/api/v1/client/logout", middleware.RequireAuthentication("user")(http.HandlerFunc(controllers.LogoutHandlerUser)))
+
 }

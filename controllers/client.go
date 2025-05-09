@@ -3,8 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
@@ -19,7 +21,12 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
 		return
 	}
-
+	// Verificar duplicação
+	existingClient, err := repositoryControllers.GetUserByEmail(client.Email, dbPool)
+	if err == nil && existingClient.Email != "" {
+		http.Error(w, "Email already registered", http.StatusConflict)
+		return
+	}
 	encodedPassword, err := utils.GenerateFromPassword(client.Password, utils.DefaultArgon2Params)
 	if err != nil {
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
@@ -106,9 +113,10 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	// Create a session
-	session, _ := utils.Store.Get(r, "client-session")
+	session, _ := utils.Store.Get(r, "session")
 	session.Values["user_id"] = user.Id
 	session.Values["email"] = user.Email
+	session.Values["role"] = "user"
 	session.Save(r, w)
 
 	avatar := ""
@@ -130,16 +138,37 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	json.NewEncoder(w).Encode(userJson)
 }
 
-
 func LogoutHandlerUser(w http.ResponseWriter, r *http.Request) {
-    session, _ := utils.Store.Get(r, "client-session")
 
-    delete(session.Values, "user_id")
-    delete(session.Values, "email")
+	session, err := utils.Store.Get(r, "session")
+	if err != nil {
+		http.Error(w, "Failed to get session", http.StatusInternalServerError)
+		return
+	}
 
-    // Invalidate the session cookie
-    session.Options.MaxAge = -1
+	// Limpar os dados da sessão
+	delete(session.Values, "user_id")
+	delete(session.Values, "email")
+	delete(session.Values, "role")
 
-    session.Save(r, w)
+	// Invalidar sessão
+	session.Options.MaxAge = -1
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return
+	}
+	role := session.Values["role"]
+	fmt.Println("Logging out role:", role)
+	session.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   -1, // Força a expiração
+		HttpOnly: true,
+	}
+	session.Save(r, w)
 
+	log.Println(session.Values)
+	// Enviar resposta ao cliente
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Logged out successfully"))
 }
