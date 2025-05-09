@@ -12,24 +12,29 @@ import (
 )
 
 func RegisterManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
-	var client controllers_models.ManagerCreationJson
-	err := json.NewDecoder(r.Body).Decode(&client)
+	var manager controllers_models.ManagerCreationJson
+	err := json.NewDecoder(r.Body).Decode(&manager)
 	if err != nil {
 		http.Error(w, "Invalid JSON Data", http.StatusBadRequest)
 		return
 	}
-
-	encodedPassword, err := utils.GenerateFromPassword(client.Password, utils.DefaultArgon2Params)
+	// Verificar duplicação
+	existingManager, err := repositoryControllers.GetManagerByEmail(manager.Email, dbPool)
+	if err == nil && existingManager.Email != "" {
+		http.Error(w, "Email already registered", http.StatusConflict)
+		return
+	}
+	encodedPassword, err := utils.GenerateFromPassword(manager.Password, utils.DefaultArgon2Params)
 	if err != nil {
 		http.Error(w, "Error creating user", http.StatusBadGateway)
 		return
 	}
 
 	dbManager := models.Manager{
-		Name:     client.Name,
-		Email:    client.Email,
+		Name:     manager.Name,
+		Email:    manager.Email,
 		Password: encodedPassword,
-		Phone:    client.Phone,
+		Phone:    manager.Phone,
 	}
 
 	err = repositoryControllers.CreateManager(dbManager, dbPool)
@@ -59,13 +64,14 @@ func LoginManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) 
 
 	_, err = utils.ComparePasswordAndHash(creds.Password, manager.Password)
 	if err != nil {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		http.Error(w, "Invalid password", http.StatusUnauthorized)
 		return
 	}
 
-	session, _ := utils.Store.Get(r, "manager-session")
+	session, _ := utils.Store.Get(r, "session")
 	session.Values["manager_id"] = manager.Id
 	session.Values["email"] = manager.Email
+	session.Values["role"] = "manager"
 	session.Save(r, w)
 
 	managerJson := controllers_models.ManagerInfoJson{
@@ -83,15 +89,16 @@ func LoginManager(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) 
 	}
 }
 
-
 func LogoutHandlerManager(w http.ResponseWriter, r *http.Request) {
-    session, _ := utils.Store.Get(r, "session")
+	session, _ := utils.Store.Get(r, "session")
 
-    delete(session.Values, "user_id")
-    delete(session.Values, "email")
+	delete(session.Values, "user_id")
+	delete(session.Values, "email")
+	delete(session.Values, "role")
 
-    session.Options.MaxAge = -1
+	session.Options.MaxAge = -1
+	session.Save(r, w)
 
-    session.Save(r, w)
-
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Logged out successfully"))
 }
