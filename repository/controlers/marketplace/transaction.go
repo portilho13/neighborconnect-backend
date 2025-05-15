@@ -152,7 +152,7 @@ func GetAllTransactions(dbPool *pgxpool.Pool) ([]models.Transaction, error) {
 func DeleteTransactionById(transaction_id int, dbPool *pgxpool.Pool) error {
 	query := `DELETE FROM marketplace.transaction WHERE id = $1`
 
-	_, err := dbPool.Exec(context.Background(), query)
+	_, err := dbPool.Exec(context.Background(), query, transaction_id)
 	if err != nil {
 		return err
 	}
