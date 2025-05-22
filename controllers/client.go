@@ -106,12 +106,11 @@ func LoginClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	}
 
 	// Verify password
-	_, err = utils.ComparePasswordAndHash(creds.Password, user.Password)
-	if err != nil {
+	match, err := utils.ComparePasswordAndHash(creds.Password, user.Password)
+	if err != nil || !match {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
-
 	// Create a session
 	session, _ := utils.Store.Get(r, "session")
 	session.Values["user_id"] = user.Id
