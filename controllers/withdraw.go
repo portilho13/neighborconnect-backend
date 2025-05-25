@@ -29,6 +29,7 @@ func CreateWithdraw(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			http.Error(w, "Gatway error", http.StatusInternalServerError)
 			return
 		}
+	case "iban":
 	default:
 		http.Error(w, "Unsupported Gatway", http.StatusInternalServerError)
 		return
