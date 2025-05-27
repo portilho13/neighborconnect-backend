@@ -21,11 +21,9 @@ func TestCreateCategory(t *testing.T) {
 
 	// Ensure the database is clean before starting
 	CleanDatabase(dbPool, "marketplace.bid")
-	url := "test"
 
 	category := models.Category{
 		Name: "Modern Apartment",
-		Url:  &url,
 	}
 
 	// Testar a função
@@ -45,18 +43,14 @@ func TestGetAllCategories(t *testing.T) {
 
 	// Ensure the database is clean before starting
 	CleanDatabase(dbPool, "marketplace.category")
-	url := "test"
 	category := []models.Category{{
 		Name: "cat1",
-		Url:  &url,
 	},
 		{
 			Name: "cat2",
-			Url:  &url,
 		},
 		{
 			Name: "cat2",
-			Url:  &url,
 		},
 	}
 	for _, l := range category {
@@ -74,39 +68,35 @@ func TestGetAllCategories(t *testing.T) {
 	for i, expected := range category {
 		actual := retrievedListings[i]
 		assert.Equal(t, expected.Name, actual.Name, "Retrieved Name should match inserted listing")
-		assert.Equal(t, expected.Url, actual.Url, "Retrieved Description should match inserted listing")
 	}
 
 }
 func TestGetCategoryById(t *testing.T) {
 	dbPool, err := GetTestDBConnection()
-    require.NoError(t, err)
-    defer dbPool.Close()
+	require.NoError(t, err)
+	defer dbPool.Close()
 
-    CleanDatabase(dbPool, "marketplace.category")
+	CleanDatabase(dbPool, "marketplace.category")
 
-    url := "test"
-    category := models.Category{
-        Name: "cat1",
-        Url:  &url,
-    }
+	category := models.Category{
+		Name: "cat1",
+	}
 
-    // Inserir e obter o ID diretamente
-    var categoryId int
-    err = dbPool.QueryRow(context.Background(),
-        `INSERT INTO marketplace.category (name, url) 
-         VALUES ($1, $2) 
+	// Inserir e obter o ID diretamente
+	var categoryId int
+	err = dbPool.QueryRow(context.Background(),
+		`INSERT INTO marketplace.category (name) 
+         VALUES ($1) 
          RETURNING id`,
-        category.Name, 
-        category.Url).Scan(&categoryId)
-    require.NoError(t, err)
+		category.Name,
+		category).Scan(&categoryId)
+	require.NoError(t, err)
 
-    // Agora você tem o categoryId para usar nos testes
-    t.Logf("Created category ID: %d", categoryId)
+	// Agora você tem o categoryId para usar nos testes
+	t.Logf("Created category ID: %d", categoryId)
 	// Testar GetCategoryById com o ID obtido
-    retrievedCategory, err := repository.GetCategoryById(categoryId, dbPool)
-    require.NoError(t, err)
+	retrievedCategory, err := repository.GetCategoryById(categoryId, dbPool)
+	require.NoError(t, err)
 
-    assert.Equal(t, category.Name, retrievedCategory.Name)
-    assert.Equal(t, *category.Url, *retrievedCategory.Url)
+	assert.Equal(t, category.Name, retrievedCategory.Name)
 }

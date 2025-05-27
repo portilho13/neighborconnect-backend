@@ -186,7 +186,6 @@ func GetListingById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	categoryJson := controllers_models.CategoryInfo{
 		Id:   *category.Id,
 		Name: category.Name,
-		Url:  *category.Url,
 	}
 
 	user, err := repositoryControllersUsers.GetUsersById(*listing.Seller_Id, dbPool)
@@ -306,7 +305,6 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		categoryJson := controllers_models.CategoryInfo{
 			Id:   *category.Id,
 			Name: category.Name,
-			Url:  *category.Url,
 		}
 
 		user, err := repositoryControllersUsers.GetUsersById(*listing.Seller_Id, dbPool)

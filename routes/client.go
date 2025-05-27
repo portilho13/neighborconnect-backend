@@ -26,3 +26,11 @@ func LogoutClientApiRoute(mux *http.ServeMux) {
 	mux.Handle("/api/v1/client/logout", middleware.RequireAuthentication("user")(http.HandlerFunc(controllers.LogoutHandlerUser)))
 
 }
+
+func GetClientsApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.Handle("GET /api/v1/client",
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			controllers.GetNeighborInfo(w, r, dbPool)
+		}),
+	)
+}

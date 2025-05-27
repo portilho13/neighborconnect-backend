@@ -22,3 +22,12 @@ type SellerListingInfo struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 }
+
+type NeighborInfo struct {
+	Id              int    `json:"id"`
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	Phone           string `json:"phone"`
+	ApartmentID     int    `json:"apartment_id"`
+	Profile_Picture string `json:"profile_picture"`
+}

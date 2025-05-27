@@ -110,7 +110,6 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 				categoryJson := controllers_models.CategoryInfo{
 					Id:   *category.Id,
 					Name: category.Name,
-					Url:  *category.Url,
 				}
 
 				user, err := repositoryControllers.GetUsersById(*listing.Seller_Id, dbPool)

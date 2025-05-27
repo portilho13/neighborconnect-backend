@@ -171,3 +171,33 @@ func LogoutHandlerUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Logged out successfully"))
 }
+
+func GetNeighborInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	users, err := repositoryControllers.GetAllUsers(dbPool)
+	if err != nil {
+		http.Error(w, "Failed to get user info", http.StatusInternalServerError)
+		return
+	}
+
+	var usersJson []controllers_models.NeighborInfo
+
+	for _, user := range users {
+		userJson := controllers_models.NeighborInfo{
+			Id:              user.Id,
+			Name:            user.Name,
+			Email:           user.Email,
+			Phone:           user.Phone,
+			ApartmentID:     *user.Apartment_id,
+			Profile_Picture: *user.Profile_Picture,
+		}
+
+		usersJson = append(usersJson, userJson)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(usersJson); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}

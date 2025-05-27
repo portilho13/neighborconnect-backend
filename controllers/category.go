@@ -20,16 +20,9 @@ func GetCategories(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 	var categoriesJson []controllers_models.CategoryInfo
 
 	for _, category := range categories {
-		var url string
-		if category.Url == nil {
-			url = ""
-		} else {
-			url = *category.Url
-		}
 		categoryJson := controllers_models.CategoryInfo{
 			Id:   *category.Id,
 			Name: category.Name,
-			Url:  url,
 		}
 
 		categoriesJson = append(categoriesJson, categoryJson)
@@ -54,7 +47,6 @@ func CreateCategory(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	categoryDb := models.Category{
 		Name: category.Name,
-		Url:  &category.Url,
 	}
 
 	err = repositoryControllers.CreateCategory(categoryDb, dbPool)
