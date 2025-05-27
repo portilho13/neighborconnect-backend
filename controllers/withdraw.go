@@ -47,7 +47,7 @@ func CreateWithdraw(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	}
 
 	account_movement := models.Account_Movement{
-		Ammount:    0 - withdrawJson.Amount,
+		Ammount:    withdrawJson.Amount,
 		Created_at: time.Now().UTC(),
 		Account_id: &account.Id,
 		Type:       "withdraw",
