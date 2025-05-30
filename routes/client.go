@@ -34,3 +34,11 @@ func GetClientsApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		}),
 	)
 }
+
+func UploadProfilePictureApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.Handle("POST /api/v1/client/upload",
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			controllers.UploadProfilePicture(w, r, dbPool)
+		}),
+	)
+}

@@ -49,6 +49,7 @@ func InitializeRoutes(dbPool *pgxpool.Pool) http.Handler {
 	routes.GetAccountMovementsApi(mux, dbPool)
 	routes.GetRentsByIdApi(mux, dbPool)
 	routes.GetClientsApiRoute(mux, dbPool)
+	routes.UploadProfilePictureApi(mux, dbPool)
 	//routes.LogoutClientApiRoute(mux)
 	//routes.LogoutManagerApiRoute(mux)
 

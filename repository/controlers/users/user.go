@@ -163,3 +163,15 @@ func GetAllUsers(dbPool *pgxpool.Pool) ([]models.User, error) {
 
 	return users, nil
 }
+
+func UpdateUserProfilePicture(url string, user_id int, dbPool *pgxpool.Pool) error {
+	query := `UPDATE users.users
+		SET profile_picture = $1
+		WHERE id = $2;
+		`
+	_, err := dbPool.Exec(context.Background(), query, url, user_id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

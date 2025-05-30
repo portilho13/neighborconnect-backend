@@ -70,7 +70,7 @@ func UpdateTransactionStatus(status string, id int, dbPool *pgxpool.Pool) error 
 func GetTransactionsByBuyerId(buyer_id int, dbPool *pgxpool.Pool) ([]models.Transaction, error) {
 	var transactions []models.Transaction
 
-	query := `SELECT id, final_price, transaction_time, transaction_type, buyer_id, seller_id, listing_id, payment_status, payment_due_time FROM marketplace.transaction WHERE buyer_id = $1 AND payment_status = 'unpaid'`
+	query := `SELECT id, final_price, transaction_time, transaction_type, buyer_id, seller_id, listing_id, payment_status, payment_due_time FROM marketplace.transaction WHERE buyer_id = $1 AND payment_status = 'pending'`
 
 	rows, err := dbPool.Query(context.Background(), query, buyer_id)
 

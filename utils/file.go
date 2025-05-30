@@ -25,7 +25,7 @@ func CreateUploadsFolder() error {
 			return err
 		}
 
-		err = os.Mkdir("./uploads/category", 0777)
+		err = os.Mkdir("./uploads/users", 0777)
 		if err != nil {
 			return err
 		}

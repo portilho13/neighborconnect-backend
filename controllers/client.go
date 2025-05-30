@@ -3,10 +3,15 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
@@ -221,4 +226,64 @@ func GetNeighborInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Poo
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func UploadProfilePicture(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	err := r.ParseMultipartForm(32 << 20) // 32MB
+	if err != nil {
+		http.Error(w, "Failed to parse multipart form", http.StatusBadRequest)
+		return
+	}
+
+	user_id_str := r.FormValue("user_id")
+	user_id, err := strconv.Atoi(user_id_str)
+	if err != nil {
+		http.Error(w, "Failed to convert user id", http.StatusInternalServerError)
+		return
+	}
+
+	var api_path string
+
+	files := r.MultipartForm.File["profilePicture"]
+	for _, fileHeader := range files {
+		file, err := fileHeader.Open()
+		if err != nil {
+			http.Error(w, "Failed to create user file", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		filename := fileHeader.Filename
+		ext := filepath.Ext(filename)
+		newFilename := uuid.New().String() + ext
+		savePath := fmt.Sprintf("./uploads/users/%s", newFilename)
+
+		dst, err := os.Create(savePath)
+		if err != nil {
+			http.Error(w, "Failed to create user file", http.StatusInternalServerError)
+			return
+		}
+		defer dst.Close()
+
+		_, err = io.Copy(dst, file)
+		if err != nil {
+			http.Error(w, "Failed to create listing", http.StatusInternalServerError)
+			return
+		}
+
+		api_url := utils.GetApiUrl()
+
+		api_path = fmt.Sprintf("http://%s/api/v1/uploads/users/%s", api_url, newFilename)
+
+	}
+
+	err = repositoryControllers.UpdateUserProfilePicture(api_path, user_id, dbPool)
+	if err != nil {
+		http.Error(w, "Failed to update user profile picture", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Client Profile Picture Updated !"})
 }
