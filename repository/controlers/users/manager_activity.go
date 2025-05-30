@@ -52,6 +52,8 @@ func GetManagerActivityByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]mode
 		if err != nil {
 			return nil, err
 		}
+
+		manager_activities = append(manager_activities, manager_activity)
 	}
 
 	if rows.Err() != nil {

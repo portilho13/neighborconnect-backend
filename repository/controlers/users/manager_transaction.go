@@ -57,6 +57,8 @@ func GetManagerTransactionsByManagerId(manager_id int, dbPool *pgxpool.Pool) ([]
 		if err != nil {
 			return nil, err
 		}
+
+		manager_transactions = append(manager_transactions, manager_transaction)
 	}
 
 	if rows.Err() != nil {

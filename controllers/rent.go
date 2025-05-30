@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
+	models "github.com/portilho13/neighborconnect-backend/repository/models/users"
 	"github.com/portilho13/neighborconnect-backend/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -94,13 +96,13 @@ func PayRent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 
 	}
 
-	seller_account, err := repositoryControllers.GetAccountByUserId(user.Id, dbPool)
+	user_account, err := repositoryControllers.GetAccountByUserId(user.Id, dbPool)
 	if err != nil {
 		http.Error(w, "Error Fetching Seller Id Account", http.StatusInternalServerError)
 		return
 	}
 
-	new_balance := seller_account.Balance - rent.Final_Amount
+	new_balance := user_account.Balance - rent.Final_Amount
 
 	err = repositoryControllers.UpdateAccountBalance(user.Id, new_balance, dbPool)
 	if err != nil {
@@ -120,11 +122,45 @@ func PayRent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 		return
 	}
 
+	manager_id, err := utils.GetManagerIdByUserId(user.Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Manager Id", http.StatusInternalServerError)
+		return
+	}
+	description_str_activity := fmt.Sprintf("User %d payed their rent for apartment %d", user.Id, *user.Apartment_id)
+	manager_activity := models.Manager_Activity{
+		Type:        "rent",
+		Description: description_str_activity,
+		Created_At:  time.Now().UTC(),
+		Manager_Id:  *manager_id,
+	}
+
+	err = repositoryControllers.CreateManagerActivity(manager_activity, dbPool)
+	if err != nil {
+		http.Error(w, "Error Creating Manager Activity", http.StatusInternalServerError)
+		return
+	}
+
+	description_str_transaction := fmt.Sprintf("User %d payed their rent for apartment %d", user.Id, *user.Apartment_id)
+	manager_transaction := models.Manager_Transaction{
+		Type:        "rent",
+		Amount:      rent.Final_Amount,
+		Date:        time.Now().UTC(),
+		Description: description_str_transaction,
+		Users_Id:    &user.Id,
+		Manager_Id:  *manager_id,
+	}
+
+	err = repositoryControllers.CreateManagerTransaction(manager_transaction, dbPool)
+	if err != nil {
+		http.Error(w, "Error Creating Manager Transaction", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Rent Paied Sucessfully !"})
 }
-
 
 func GetRentById(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	rent_id_str := r.URL.Query().Get("id")

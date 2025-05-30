@@ -17,6 +17,8 @@ import (
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/events"
 	repositoryControllersUsers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/events"
+	modelsUsers "github.com/portilho13/neighborconnect-backend/repository/models/users"
+
 	"github.com/portilho13/neighborconnect-backend/utils"
 )
 
@@ -91,6 +93,20 @@ func CreateEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 	err = repositoryControllers.CreateCommunityEvent(event, dbPool)
 	if err != nil {
 		http.Error(w, "Error Creating Event", http.StatusBadRequest)
+		return
+	}
+
+	manager_activity_str := fmt.Sprintf("New event %s created", eventData.Name)
+	manager_activity := modelsUsers.Manager_Activity{
+		Type:        "Event Created",
+		Description: manager_activity_str,
+		Created_At:  time.Now().UTC(),
+		Manager_Id:  eventData.Manager_Id,
+	}
+
+	err = repositoryControllersUsers.CreateManagerActivity(manager_activity, dbPool)
+	if err != nil {
+		http.Error(w, "Error creating manager activity", http.StatusBadRequest)
 		return
 	}
 

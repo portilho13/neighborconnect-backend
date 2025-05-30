@@ -27,7 +27,7 @@ type ListingInfo struct {
 	Created_At      time.Time         `json:"created_at"`
 	Expiration_Date time.Time         `json:"expiration_date"`
 	Status          string            `json:"status"`
-	Seller          SellerListingInfo `json:"seller"` // Remove this * in prod
+	Seller          SellerListingInfo `json:"seller"`
 	Category        CategoryInfo      `json:"category"`
 	Listing_Photos  []Listing_Photos  `json:"listing_photos"`
 }

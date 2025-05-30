@@ -16,6 +16,8 @@ import (
 	repositoryControllers "github.com/portilho13/neighborconnect-backend/repository/controlers/marketplace"
 	repositoryControllersUsers "github.com/portilho13/neighborconnect-backend/repository/controlers/users"
 	models "github.com/portilho13/neighborconnect-backend/repository/models/marketplace"
+	modelsUsers "github.com/portilho13/neighborconnect-backend/repository/models/users"
+
 	"github.com/portilho13/neighborconnect-backend/utils"
 )
 
@@ -137,6 +139,27 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 			http.Error(w, "Failed to create listing photos", http.StatusInternalServerError)
 			return
 		}
+	}
+
+	manager_id, err := utils.GetManagerIdByUserId(*sellerIDPtr, dbPool)
+	if err != nil {
+		http.Error(w, "Error fetching manager id", http.StatusInternalServerError)
+		return
+	}
+
+	manager_activity_str := fmt.Sprintf("New listing created from seller %d", &sellerID)
+
+	manager_activity := modelsUsers.Manager_Activity{
+		Type:        "Listing Created",
+		Description: manager_activity_str,
+		Created_At:  time.Now().UTC(),
+		Manager_Id:  *manager_id,
+	}
+
+	err = repositoryControllersUsers.CreateManagerActivity(manager_activity, dbPool)
+	if err != nil {
+		http.Error(w, "Error creating manager activity", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -30,6 +29,7 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	}
 
 	final_price := 0.0
+	var f_price float64
 
 	for _, transaction_id := range payJson.Transaction_Ids {
 		transaction, err := repositoryControllers.GetTransactionById(transaction_id, dbPool)
@@ -47,7 +47,7 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			http.Error(w, "Invalid User", http.StatusInternalServerError)
 			return
 		}
-
+		f_price = transaction.Final_Price
 		final_price += transaction.Final_Price * (1 + FEES)
 
 	}
@@ -106,29 +106,6 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 			return
 		}
 
-		feesAmount := transaction.Final_Price * FEES
-
-		manager_id, err := utils.GetManagerIdByUserId(*transaction.Seller_Id, dbPool)
-		if err != nil {
-			http.Error(w, "Error Fetching Manager Id", http.StatusInternalServerError)
-			return
-		}
-
-		manager_transaction := models.Manager_Transaction{
-			Type:        "fees",
-			Amount:      feesAmount,
-			Date:        time.Now().UTC(),
-			Description: "Marketplace Fees",
-			Manager_Id:  *manager_id,
-		}
-
-		err = repositoryControllersUsers.CreateManagerTransaction(manager_transaction, dbPool)
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Adding Manager Transaction", http.StatusInternalServerError)
-			return
-		}
-
 	}
 
 	switch payJson.Type {
@@ -145,6 +122,27 @@ func PayTransaction(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	err = repositoryControllersUsers.UpdateAccountBalance(payJson.User_Id, final_price, dbPool)
 	if err != nil {
 		http.Error(w, "Error Adding Payout", http.StatusInternalServerError)
+		return
+	}
+
+	manager_id, err := utils.GetManagerIdByUserId(payJson.User_Id, dbPool)
+	if err != nil {
+		http.Error(w, "Error fetching manager id", http.StatusInternalServerError)
+		return
+	}
+
+	manager_transaction := models.Manager_Transaction{
+		Type:        "Fee",
+		Amount:      f_price * FEES,
+		Date:        time.Now().UTC(),
+		Description: "Marketplace Fee",
+		Users_Id:    &payJson.User_Id,
+		Manager_Id:  *manager_id,
+	}
+
+	err = repositoryControllersUsers.CreateManagerTransaction(manager_transaction, dbPool)
+	if err != nil {
+		http.Error(w, "Error creating manager transaction", http.StatusInternalServerError)
 		return
 	}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -81,6 +82,26 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	err = repositoryControllers.UpdateApartmentStatus(*apartmentID, dbPool)
 	if err != nil {
 		http.Error(w, "Error updating apartment status", http.StatusInternalServerError)
+		return
+	}
+
+	manager_id, err := repositoryControllers.GetManagerIdByApartmentId(*apartmentID, dbPool)
+	if err != nil {
+		http.Error(w, "Error fetching manager", http.StatusInternalServerError)
+		return
+	}
+
+	manager_activity_str := fmt.Sprintf("%s registered to apartment %d", client.Name, *apartmentID)
+	manager_activity := models.Manager_Activity{
+		Type:        "New Resident",
+		Description: manager_activity_str,
+		Created_At:  time.Now().UTC(),
+		Manager_Id:  *manager_id,
+	}
+
+	err = repositoryControllers.CreateManagerActivity(manager_activity, dbPool)
+	if err != nil {
+		http.Error(w, "Error creating manager activity", http.StatusInternalServerError)
 		return
 	}
 

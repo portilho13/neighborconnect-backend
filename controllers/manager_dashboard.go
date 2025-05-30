@@ -31,6 +31,8 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 	var usersJson []controllers_models.UserLogin
 	var listingsJson []controllers_models.ListingInfo
 	var eventsJson []controllers_models.EventInfo
+	var manager_activities_json []controllers_models.ManagerActivity
+	var manager_transactions_json []controllers_models.ManagerTransaction
 
 	for _, apartment := range apartments {
 
@@ -206,11 +208,49 @@ func GetDashBoardInfo(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Po
 		})
 	}
 
+	manager_activities, err := repositoryControllers.GetManagerActivityByManagerId(manager_id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Manager Activities", http.StatusInternalServerError)
+		return
+	}
+
+	for _, manager_activity := range manager_activities {
+		manager_activity_json := controllers_models.ManagerActivity{
+			Id:          *manager_activity.Id,
+			Type:        manager_activity.Type,
+			Description: manager_activity.Description,
+			Created_At:  manager_activity.Created_At,
+		}
+
+		manager_activities_json = append(manager_activities_json, manager_activity_json)
+	}
+
+	manager_transactions, err := repositoryControllers.GetManagerTransactionsByManagerId(manager_id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Fetching Manager Activities", http.StatusInternalServerError)
+		return
+	}
+
+	for _, manager_transaction := range manager_transactions {
+		manager_transaction_json := controllers_models.ManagerTransaction{
+			Id:          manager_transaction.Id,
+			Type:        manager_transaction.Type,
+			Amount:      manager_transaction.Amount,
+			Date:        manager_transaction.Date,
+			Description: manager_transaction.Description,
+			Users_Id:    manager_transaction.Users_Id,
+		}
+
+		manager_transactions_json = append(manager_transactions_json, manager_transaction_json)
+	}
+
 	dashboardInfo := controllers_models.ManagerDashboardInfo{
-		Apartments: apartmentsJson,
-		Users:      usersJson,
-		Listings:   listingsJson,
-		Events:     eventsJson,
+		Apartments:          apartmentsJson,
+		Users:               usersJson,
+		Listings:            listingsJson,
+		Events:              eventsJson,
+		ManagerActivities:   manager_activities_json,
+		ManagerTransactions: manager_transactions_json,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

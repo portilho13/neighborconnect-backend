@@ -201,8 +201,10 @@ func GetEventById(event_id int, dbPool *pgxpool.Pool) (models.Community_Event, e
 func GetEventsByUserId(user_id int, dbPool *pgxpool.Pool) ([]models.Community_Event, error) {
 	var users_community_events []models.Community_Event
 
-	query := `SELECT community_event_id
-	FROM events.many_community_event_has_many_users WHERE users_id = $1`
+	query := `SELECT mcehmu.community_event_id
+FROM events.many_community_event_has_many_users mcehmu
+JOIN events.community_event ce ON mcehmu.community_event_id = ce.id
+WHERE mcehmu.users_id = $1 AND ce.status = 'active'`
 
 	rows, err := dbPool.Query(context.Background(), query, user_id)
 	if err != nil {

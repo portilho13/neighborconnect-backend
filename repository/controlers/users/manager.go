@@ -42,3 +42,19 @@ func GetManagerByEmail(email string, dbPool *pgxpool.Pool) (models.Manager, erro
 
 	return manager, nil
 }
+
+func GetManagerIdByApartmentId(apartment_id int, dbPool *pgxpool.Pool) (*int, error) {
+	query := `SELECT manager_id FROM users.apartment WHERE manager_id = $1`
+
+	var manager_id int
+
+	err := dbPool.QueryRow(context.Background(), query, apartment_id).Scan(
+		&manager_id,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &manager_id, nil
+}
