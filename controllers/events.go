@@ -73,7 +73,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
 
 		api_url := utils.GetApiUrl()
 
-		api_path = fmt.Sprintf("http://%s/api/v1/uploads/events/%s", api_url, newFilename)
+		api_path = fmt.Sprintf("https://%s/api/v1/uploads/events/%s", api_url, newFilename)
 
 	}
 	event := models.Community_Event{

@@ -127,7 +127,7 @@ func CreateListing(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool)
 
 		api_url := utils.GetApiUrl()
 
-		api_path := fmt.Sprintf("http://%s/api/v1/uploads/listing/%s", api_url, newFilename)
+		api_path := fmt.Sprintf("https://%s/api/v1/uploads/listing/%s", api_url, newFilename)
 
 		listing_photo := models.Listing_Photos{
 			Url:        api_path,

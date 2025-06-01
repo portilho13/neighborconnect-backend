@@ -276,7 +276,7 @@ func UploadProfilePicture(w http.ResponseWriter, r *http.Request, dbPool *pgxpoo
 
 		api_url := utils.GetApiUrl()
 
-		api_path = fmt.Sprintf("http://%s/api/v1/uploads/users/%s", api_url, newFilename)
+		api_path = fmt.Sprintf("https://%s/api/v1/uploads/users/%s", api_url, newFilename)
 
 	}
 
