@@ -364,3 +364,24 @@ func GetAllListings(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 		return
 	}
 }
+
+func DeleteListingApiRoute(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	listingID_str := r.URL.Query().Get("listing_id")
+
+	listing_id, err := strconv.Atoi(listingID_str)
+	if err != nil {
+		http.Error(w, "Error Deleting Listing", http.StatusInternalServerError)
+		return
+	}
+
+	err = repositoryControllers.DeleteListingById(listing_id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Deleting Listing", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Listing Deleted !"})
+
+}

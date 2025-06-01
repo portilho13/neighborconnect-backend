@@ -12,3 +12,9 @@ func CreateApartmentApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.CreateApartment(w, r, dbPool)
 	})
 }
+
+func DeleteApartmentApi(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("DELETE /api/v1/apartment", func(w http.ResponseWriter, r *http.Request) {
+		controllers.DeleteApartmentApi(w, r, dbPool)
+	})
+}

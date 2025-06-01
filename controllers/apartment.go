@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	controllers_models "github.com/portilho13/neighborconnect-backend/models"
@@ -32,7 +32,6 @@ func CreateApartment(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Poo
 	err = repositoryControllers.CreateApartment(apartment, dbPool)
 
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Error Creating Apartment", http.StatusInternalServerError)
 		return
 	}
@@ -40,5 +39,25 @@ func CreateApartment(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Poo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Apartment Created !"})
+}
+
+func DeleteApartmentApi(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool) {
+	apartmentID_str := r.URL.Query().Get("apartment_id")
+
+	apartment_id, err := strconv.Atoi(apartmentID_str)
+	if err != nil {
+		http.Error(w, "Error Deleting Apartment", http.StatusInternalServerError)
+		return
+	}
+
+	err = repositoryControllers.DeleteApartmentById(apartment_id, dbPool)
+	if err != nil {
+		http.Error(w, "Error Deleting Apartment", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Apartment Deleted !"})
 
 }

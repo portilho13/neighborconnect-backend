@@ -24,3 +24,9 @@ func GetAllListingApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
 		controllers.GetAllListings(w, r, dbPool)
 	})
 }
+
+func DeleteListingApiRoute(mux *http.ServeMux, dbPool *pgxpool.Pool) {
+	mux.HandleFunc("DELETE /api/v1/listing", func(w http.ResponseWriter, r *http.Request) {
+		controllers.DeleteListingApiRoute(w, r, dbPool)
+	})
+}

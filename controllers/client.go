@@ -35,6 +35,7 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 	}
 	encodedPassword, err := utils.GenerateFromPassword(client.Password, utils.DefaultArgon2Params)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
 	}
@@ -67,6 +68,7 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	dbClient, err = repositoryControllers.GetUserByEmail(clientEmail, dbPool)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
 	}
@@ -92,6 +94,7 @@ func RegisterClient(w http.ResponseWriter, r *http.Request, dbPool *pgxpool.Pool
 
 	manager_id, err := repositoryControllers.GetManagerIdByApartmentId(*apartmentID, dbPool)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Error fetching manager", http.StatusInternalServerError)
 		return
 	}
