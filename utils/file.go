@@ -39,6 +39,6 @@ func GetApiUrl() string {
 		log.Fatal(err)
 	}
 
-	return os.Getenv("API_IP")
+	return os.Getenv("API_PUBLIC_URL")
 
 }
